@@ -1,7 +1,8 @@
+<div>
 <header class="bg-white z-0 shadow-lg px-9 py-5 border-b border-gray-300 flex justify-between items-center">
   <!-- Logo -->
   <div class="flex items-center space-x-3">
-      <img src="{{ asset('jami.png')}}" alt="Logo" class="h-12">
+      <img src="{{ asset('jgt.png')}}" alt="Logo" class="h-11">
       {{-- <span class="text-xl font-semibold text-gray-700">MyApp</span> --}}
   </div>
   
@@ -32,5 +33,39 @@
           </div>
       </div>
   </div>
+  
+
 </header>
 
+</div>
+
+
+
+@script
+<script>
+      const notificationButton = document.getElementById('notificationButton');
+  const notificationDropdown = document.getElementById('notificationDropdown');
+  
+  notificationButton.addEventListener('click', () => {
+      notificationDropdown.classList.toggle('hidden');
+  });
+
+  // Toggle User Dropdown
+  const userButton = document.getElementById('userButton');
+  const userDropdown = document.getElementById('userDropdown');
+  
+  userButton.addEventListener('click', () => {
+      userDropdown.classList.toggle('hidden');
+  });
+
+  // Close dropdowns if clicking outside
+  window.addEventListener('click', (e) => {
+      if (!notificationButton.contains(e.target) && !notificationDropdown.contains(e.target)) {
+          notificationDropdown.classList.add('hidden');
+      }
+      if (!userButton.contains(e.target) && !userDropdown.contains(e.target)) {
+          userDropdown.classList.add('hidden');
+      }
+  });
+</script>
+@endscript

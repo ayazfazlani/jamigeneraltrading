@@ -1,9 +1,11 @@
 <?php
-
+// app/Http/Livewire/Transactions.php
 namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Transaction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransactionsExport;
 
 class Transactions extends Component
 {
@@ -25,7 +27,21 @@ class Transactions extends Component
     public function fetchTransactions()
     {
         try {
-            $this->transactions = Transaction::all(); // Get all transactions
+            $query = Transaction::query();
+
+            // Apply filters
+            if ($this->filter) {
+                $query->where('item_name', 'like', '%' . $this->filter . '%')
+                    ->orWhere('type', 'like', '%' . $this->filter . '%');
+            }
+
+            // Apply date range filter
+            if ($this->dateRange['start'] && $this->dateRange['end']) {
+                $query->whereBetween('date', [$this->dateRange['start'], $this->dateRange['end']]);
+            }
+
+            // Convert transactions to a collection
+            $this->transactions = collect($query->get());
         } catch (\Exception $e) {
             session()->flash('error', 'Error fetching transactions.');
         }
@@ -37,46 +53,32 @@ class Transactions extends Component
         $this->selectedTransaction = $this->transactions->firstWhere('id', $transactionId);
     }
 
-    // Update filter and refresh the transaction list
-    public function updatedFilter()
+    // Export to Excel
+    public function exportToExcel()
     {
-        // This will trigger a re-render when the filter value is updated
+        return Excel::download(new TransactionsExport($this->transactions), 'transactions.xlsx');
     }
 
-    // Get color for transaction type (StockIn, StockOut, etc.)
+    // Handle filter button click
+    public function applyFilters()
+    {
+        $this->fetchTransactions();
+    }
+
+    // Get color for transaction type
     public function getTransactionColor($type)
     {
         return match ($type) {
-            'StockIn' => 'bg-green-100',
-            'StockOut' => 'bg-red-100',
-            default => 'bg-gray-100'
+            'stock in' => 'bg-green-100',
+            'stock out' => 'bg-red-100',
+            default => 'bg-gray-100',
         };
     }
 
     public function render()
     {
-        // Ensure $this->transactions is a collection (should be after fetchTransactions)
-        $transactionsCollection = collect($this->transactions);
-
-        // Filter transactions based on search filter
-        $filteredTransactions = $transactionsCollection->filter(function ($transaction) {
-            return str_contains(strtolower($transaction->type), strtolower($this->filter)) ||
-                str_contains(strtolower($transaction->details), strtolower($this->filter));
-        });
-
-        // Apply date range filter if specified
-        if ($this->dateRange['start'] && $this->dateRange['end']) {
-            $filteredTransactions = $filteredTransactions->filter(function ($transaction) {
-                $transactionDate = strtotime($transaction->date);
-                $startDate = strtotime($this->dateRange['start']);
-                $endDate = strtotime($this->dateRange['end']);
-
-                return $transactionDate >= $startDate && $transactionDate <= $endDate;
-            });
-        }
-
         return view('livewire.transactions', [
-            'filteredTransactions' => $filteredTransactions
+            'filteredTransactions' => $this->transactions
         ]);
     }
 }

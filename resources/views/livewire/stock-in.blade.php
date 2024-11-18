@@ -1,5 +1,15 @@
-<div class="p-10 max-h-screen overflow-auto bg-white text-gray-900">
+<div class="p-6 max-h-screen overflow-auto bg-white text-gray-900">
     <!-- Header Section -->
+    @if(session()->has('message'))
+    <div class="p-4 right-0 mb-4 text-sm text-white bg-green-400" role="alert">
+        {{ session('message') }}
+    </div>
+    @elseif(session()->has('error'))
+        <div class="p-4 mb-4 text-sm text-white bg-red-400" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+   
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-semibold">Stock In</h1>
         <button wire:click="loadItems" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Reset</button>

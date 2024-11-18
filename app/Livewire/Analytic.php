@@ -5,58 +5,87 @@ namespace App\Livewire;
 use App\Models\Item;
 use App\Models\Analytics;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AnalyticsExport;
 
 class Analytic extends Component
 {
-    public $itemsData = [];
-    public $analyticsData = [];
-    public $selectedCalculation = [];
+    public $itemsDataJson;
+    public $filteredAnalyticsDataJson;
+    public $filterName = '';
+    public $dateFrom = '';
+    public $dateTo = '';
 
     public function mount()
     {
-        // Fetch the items and analytics data asynchronously
-        $this->itemsData = Item::all();
-        $this->analyticsData = Analytics::all();
+        $this->fetchData();
     }
 
-    // Handle dynamic calculation based on selected formula
-    public function calculate($field, $calculation)
+    public function updatedFilterName()
     {
-        // Get the values of the specified field, as a collection
-        $values = $this->analyticsData->pluck($field)->map(function ($item) {
-            return is_numeric($item) ? (float) $item : 0;
-        });
+        $this->fetchData();
+    }
 
-        // Perform the calculation based on the selected operation
-        switch ($calculation) {
-            case 'average':
-                return $values->isNotEmpty() ? number_format($values->sum() / $values->count(), 2) : 0;
-            case 'max':
-                return number_format($values->max(), 2);
-            case 'min':
-                return number_format($values->min(), 2);
-            case 'count':
-                return $values->count();
-            case 'total':
-                return number_format($values->sum(), 2);
-            default:
-                return '';
+    public function updatedDateFrom()
+    {
+        $this->fetchData();
+    }
+
+    public function updatedDateTo()
+    {
+        $this->fetchData();
+    }
+
+    public function fetchData()
+    {
+        // Fetch items
+        $items = Item::all();
+        $this->itemsDataJson = $items->toJson();
+
+        // Fetch analytics data with filters
+        $query = Analytics::query();
+
+        if ($this->filterName) {
+            // Search for 'item_name' directly as a column
+            $query->where('item_name', 'like', '%' . $this->filterName . '%');
         }
+
+        if ($this->dateFrom) {
+            $query->where('date', '>=', $this->dateFrom);
+        }
+
+        if ($this->dateTo) {
+            $query->where('date', '<=', $this->dateTo);
+        }
+
+        $this->filteredAnalyticsDataJson = $query->get()->toJson();
     }
 
-    // Update the selected calculation for a specific column
-    public function handleCalculationChange($column, $calculation)
+
+    public function exportExcel()
     {
-        // Update the selected calculation for the specified column
-        $this->selectedCalculation[$column] = $calculation;
+        return Excel::download(new AnalyticsExport($this->filteredAnalyticsDataJson), 'analytics.xlsx');
+    }
+
+    public function calculate($column)
+    {
+        $data = json_decode($this->filteredAnalyticsDataJson, true);
+        $total = 0;
+
+        foreach ($data as $row) {
+            if (isset($row[$column])) {
+                $total += $row[$column];
+            }
+        }
+
+        return $total;
     }
 
     public function render()
     {
         return view('livewire.analytic', [
-            'itemsData' => $this->itemsData,
-            'analyticsData' => $this->analyticsData,
-            'selectedCalculation' => $this->selectedCalculation,
+            'itemsDataJson' => $this->itemsDataJson,
+            'filteredAnalyticsDataJson' => $this->filteredAnalyticsDataJson
         ]);
     }
 }

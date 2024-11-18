@@ -7,14 +7,16 @@ use App\Livewire\Analytic;
 use App\Livewire\ItemList;
 
 use App\Livewire\Dashboard;
+use App\Livewire\Auth\Login;
 use App\Livewire\InviteUser;
+use App\Livewire\ManageRoles;
 use App\Livewire\Transactions;
 use App\Livewire\StockInComponent;
 use App\Livewire\StockOutComponent;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\RegisterController;
-use App\Livewire\Auth\Login;
+use App\Livewire\UserManagement;
 
 // Route::get('/', function () {
 //   return view('livewire.sidebar');
@@ -25,7 +27,7 @@ use App\Livewire\Auth\Login;
 // });
 
 
-Route::get('/', ItemList::class)->name('items');
+Route::get('/', ItemList::class)->name('home');
 Route::get('/itemlist', ItemList::class)->name('items');
 Route::get('/stockin', StockInComponent::class)->name('stock-in');
 Route::get('/stockout', StockOutComponent::class)->name('stock-out');
@@ -38,6 +40,7 @@ Route::get('/login', Login::class)->name('login');
 
 
 Route::get('/invite', InviteUser::class)->name('invite');
+Route::get('/admin', UserManagement::class)->name('admin');
 
 // routes/web.php
 
@@ -51,3 +54,8 @@ Route::post('/register', [RegisterController::class, 'register']);
 // Route::get('/in', [InviteController::class, 'sendInvitation']);
 // Route::get('/register', [InviteController::class, 'registerForm']);
 // Route::post('/register', [InviteController::class, 'register']);
+
+
+
+
+Route::get('/roles/{userId}', ManageRoles::class)->name('manage-roles');

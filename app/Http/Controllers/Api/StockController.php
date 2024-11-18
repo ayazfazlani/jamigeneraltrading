@@ -57,9 +57,8 @@ class StockController extends Controller
                 'total_price' => $costPerUnit * $request->quantity,
                 'date' => now(),
             ]);
-
             // Update analytics
-            $this->analyticsService->updateAnalyticsOnStockIn($item, $request->quantity);
+            $this->analyticsService->updateAllAnalytics($item, $request->quantity, 'stock_in');
 
             DB::commit();
 
@@ -111,9 +110,8 @@ class StockController extends Controller
                 'total_price' => $costPerUnit * $request->quantity,
                 'date' => now(),
             ]);
-
             // Update analytics
-            $this->analyticsService->updateAnalyticsOnStockOut($item, $request->quantity);
+            $this->analyticsService->updateAllAnalytics($item, $request->quantity, 'stock_out');
 
             DB::commit();
 

@@ -14,8 +14,9 @@ class ItemObserver
     {
         $analytics = new Analytics();
         $analytics->item_id = $item->id;
+        $analytics->item_name = $item->name;
         $analytics->current_quantity = $item->quantity;
-        $analytics->inventory_assets = $item->quantity * $item->price; // Assuming you have a price field
+        $analytics->inventory_assets = $item->quantity * $item->price;
         $analytics->save();
     }
 
@@ -27,26 +28,18 @@ class ItemObserver
         $analytics = Analytics::where('item_id', $item->id)->first();
 
         if ($analytics) {
-            // Update quantity and inventory assets based on the latest item data
             $analytics->current_quantity = $item->quantity;
             $analytics->inventory_assets = $item->quantity * $item->price;
-
-            // Update analytics calculations
-            $analytics->avg_daily_stock_in = $this->calculateAverageDailyStockIn($item);
-            $analytics->avg_daily_stock_out = $this->calculateAverageDailyStockOut($item);
-
             $analytics->save();
         }
     }
-
-
 
     /**
      * Handle the Item "deleted" event.
      */
     public function deleted(Item $item): void
     {
-        //
+        Analytics::where('item_id', $item->id)->delete();
     }
 
     /**
@@ -63,22 +56,5 @@ class ItemObserver
     public function forceDeleted(Item $item): void
     {
         //
-    }
-
-
-
-    protected function calculateAverageDailyStockIn(Item $item)
-    {
-        // Custom calculation logic for average daily stock in
-        return /* Your Calculation */;
-    }
-
-    /**
-     * Calculate the average daily stock out based on custom logic.
-     */
-    protected function calculateAverageDailyStockOut(Item $item)
-    {
-        // Custom calculation logic for average daily stock out
-        return /* Your Calculation */;
     }
 }

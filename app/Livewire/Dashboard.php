@@ -4,67 +4,46 @@ namespace App\Livewire;
 
 use App\Models\Analytics;
 use Livewire\Component;
-use App\Models\Inventory;
-use App\Models\StockIn;
-use App\Models\StockOut;
-use Carbon\Carbon;
 
 class Dashboard extends Component
 {
-    public $summary = [
-        'totalInventory' => 0,
-        'stockIn' => 0,
-        'stockOut' => 0,
-    ];
+    public $summary = [];
     public $totalInventoryData = [];
-    public $stockInData = [];
-    public $stockOutData = [];
 
     public function mount()
     {
-        // Fetch the data from the models
-        $this->fetchSummaryData();
+        $this->fetchSummary();
         $this->fetchTotalInventoryData();
-        $this->fetchStockInData();
-        $this->fetchStockOutData();
     }
 
-    public function fetchSummaryData()
+    public function fetchSummary()
     {
-        // Calculate total quantities for inventory, stock in, and stock out
+        // Fetch summary data (total inventory, stock in, stock out)
         $this->summary = [
-            'totalInventory' => Analytics::sum('average_quantity'),
-            'stockIn' => StockIn::sum('quantity'),
-            'stockOut' => StockOut::sum('quantity'),
+            'totalInventory' => Analytics::sum('current_quantity'),
+            'stockIn' => Analytics::sum('total_stock_in'),
+            'stockOut' => Analytics::sum('total_stock_out'),
         ];
     }
 
     public function fetchTotalInventoryData()
     {
-        // Fetch total inventory data for yesterday
-        $this->totalInventoryData = Analytics::select('item_id', 'average_quantity')
-            // ->whereDate('created_at', Carbon::yesterday())
-            ->get();
-    }
-
-    public function fetchStockInData()
-    {
-        // Fetch stock-in data for yesterday
-        $this->stockInData = StockIn::select('item_id', 'quantity')
-            // ->whereDate('created_at', Carbon::yesterday())
-            ->get();
-    }
-
-    public function fetchStockOutData()
-    {
-        // Fetch stock-out data for yesterday
-        $this->stockOutData = StockOut::select('item_id', 'quantity')
-            ->whereDate('created_at', Carbon::yesterday())
-            ->get();
+        // Fetch data for the total inventory chart
+        $this->totalInventoryData = Analytics::select('item_id', 'current_quantity')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->item_id,
+                    'quantity' => $item->current_quantity,
+                ];
+            });
     }
 
     public function render()
     {
-        return view('livewire.dashboard'); // This will use the dashboard blade view
+        return view('livewire.dashboard', [
+            'summary' => $this->summary,
+            'totalInventoryData' => $this->totalInventoryData,
+        ]);
     }
 }

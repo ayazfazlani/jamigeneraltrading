@@ -1,4 +1,4 @@
-<div class="container flex-1 z-0 items-center  bg-white  shadow">
+<div class="p-6 flex-1 z-0 items-center  bg-white  shadow">
     <div class="flex flex-1 justify-between items-center mb-4">
         <div>
             <h1 class="text-xl text-gray-500">Reports</h1>
@@ -44,11 +44,11 @@
             <tbody>
                 @forelse ($reports as $report)
                     <tr>
-                        <td class="border border-gray-300 px-4 py-2">{{ $report->name }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ $report->stock_in }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ $report->stock_out }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ $report->adjustments }}</td>
-                        <td class="border border-gray-300 px-4 py-2">{{ $report->balance }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ $report->item_name }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ $report->total_stock_in }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ $report->total_stock_out }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ $report->current_quantity }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ $report->inventory_assets}}</td>
                     </tr>
                 @empty
                     <tr>

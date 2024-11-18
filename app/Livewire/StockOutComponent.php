@@ -3,23 +3,17 @@
 namespace App\Livewire;
 
 use App\Models\Item;
+use App\Models\StockOut;
 use App\Models\Transaction;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use App\Services\AnalyticsService;
 
 class StockOutComponent extends Component
 {
     public $items = [];
     public $selectedItems = [];
     public $isModalOpen = false;
-    public $newItem = [
-        'sku' => '',
-        'name' => '',
-        'cost' => '',
-        'price' => '',
-        'type' => '',
-        'brand' => '',
-    ];
 
     public function mount()
     {
@@ -28,8 +22,7 @@ class StockOutComponent extends Component
 
     public function loadItems()
     {
-        // Fetch items directly from the database
-        $this->items = Item::all()->toArray();
+        $this->items = Item::all();
     }
 
     public function toggleItemSelection($itemId)
@@ -37,9 +30,8 @@ class StockOutComponent extends Component
         $key = array_search($itemId, array_column($this->selectedItems, 'id'));
 
         if ($key === false) {
-            // Find item by ID
             $item = Item::find($itemId)->toArray();
-            $item['quantity'] = 1;  // Default quantity
+            $item['quantity'] = 1;  // Default quantity for stock-out
             $this->selectedItems[] = $item;
         } else {
             unset($this->selectedItems[$key]);
@@ -65,32 +57,40 @@ class StockOutComponent extends Component
             foreach ($this->selectedItems as $item) {
                 $itemModel = Item::find($item['id']);
                 if ($itemModel) {
-                    // Deduct the stock quantity
-                    $itemModel->quantity -= $item['quantity'];
-                    $itemModel->save();
+                    // Ensure the stock is available for removal
+                    if ($itemModel->quantity >= $item['quantity']) {
+                        // Update the item quantity
+                        $itemModel->quantity -= $item['quantity'];
+                        $itemModel->save();
 
-                    // Record the stock-out transaction
-                    Transaction::create([
-                        'item_id' => $itemModel->id,
-                        'type' => 'stock out',
-                        'item_name' => $itemModel->name,
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $itemModel->cost,
-                        'total_price' => $itemModel->cost * $item['quantity'],
-                        'date' => now(),
-                    ]);
+                        // Log the transaction
+                        Transaction::create([
+                            'item_id' => $itemModel->id,
+                            'item_name' => $itemModel->name,
+                            'type' => 'stock out',
+                            'quantity' => $item['quantity'],
+                            'unit_price' => $itemModel->cost,
+                            'total_price' => $itemModel->cost * $item['quantity'],
+                            'date' => now(),
+                        ]);
+
+                        // Update Analytics after stock-out
+                        $analyticsService = new AnalyticsService();
+                        $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
+                    }
+                    DB::commit();
+                    session()->flash('message', 'Stock-out completed successfully');
                 }
             }
 
-            DB::commit();
-            session()->flash('message', 'Stock out action completed successfully.');
 
-            // Reset selected items
-            $this->selectedItems = [];
             $this->loadItems();
+            $this->selectedItems = [];  // Clear selected items
+            $this->toggleModal();  // Close modal
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Failed to process stock-out: ' . $e->getMessage());
+            // session()->flash('error', 'Error occurred: ' . $e->getMessage());
+            session()->flash('error', 'Select item to stock out!');
         }
     }
 

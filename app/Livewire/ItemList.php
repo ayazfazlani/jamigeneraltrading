@@ -3,8 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\Item;
-use Livewire\Component;
 use App\Models\Transaction;
+use Livewire\Component;
+use App\Services\AnalyticsService;
 use Livewire\WithFileUploads;
 
 class ItemList extends Component
@@ -54,6 +55,7 @@ class ItemList extends Component
             'image' => 'nullable|image|max:1024', // Optional image field
         ]);
 
+        // Create the new item
         $item = new Item();
         $item->sku = $this->newItem['sku'];
         $item->name = $this->newItem['name'];
@@ -63,13 +65,15 @@ class ItemList extends Component
         $item->brand = $this->newItem['brand'];
         $item->quantity = $this->newItem['quantity'];
 
+        // Handle image upload (if any)
         if ($this->image) {
-
             $item->image = $this->image->store('item_images', 'public');
         }
 
+        // Save the item to the database
         $item->save();
 
+        // Log the transaction for this item creation
         $itemId = $item->id;
         Transaction::create([
             'item_id' => $itemId,
@@ -81,12 +85,19 @@ class ItemList extends Component
             'date' => now(),
         ]);
 
+        // Update Analytics after item creation
+        $analyticsService = new AnalyticsService();
+        $analyticsService->updateAllAnalytics($item, $item->quantity, 'created');  // Update analytics with 'created' operation
 
-        $this->items[] = $item;  // Add to the items list
-        $this->resetNewItem();    // Reset form fields
-        $this->toggleModal();     // Close modal
+        // Add the newly created item to the list of items
+        $this->items[] = $item;
+
+        // Reset the new item form fields and close the modal
+        $this->resetNewItem();
+        $this->toggleModal();
     }
 
+    // Reset form data after item is added
     private function resetNewItem()
     {
         $this->newItem = [

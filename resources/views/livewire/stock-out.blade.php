@@ -1,7 +1,17 @@
 <div>
     <div class="p-6 flex-1 z-0 max-h-screen overflow-auto bg-white text-gray-900">
         <!-- Page Header -->
-        <div class="flex justify-between items-center">
+        @if(session()->has('message'))
+    <div class="p-4 mb-4 text-sm text-white bg-green-400 rounded-lg" role="alert">
+            {{ session('message') }}
+        </div>
+    @elseif(session()->has('error'))
+        <div class="p-4 mb-4 text-sm text-white bg-red-400 rounded-lg" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+
+        <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-semibold">Stock Out</h1>
             <button wire:click="resetSelection" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">Reset</button>
         </div>

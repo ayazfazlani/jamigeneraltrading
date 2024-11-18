@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('analytics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
+            $table->unsignedBigInteger('item_id');
+            $table->string('item_name');
             $table->integer('current_quantity')->default(0);
-            $table->decimal('inventory_assets', 12, 2)->default(0);
-            $table->integer('average_quantity')->nullable();
-            $table->decimal('turnover_ratio', 8, 2)->nullable();
-            $table->integer('stock_out_days_estimate')->nullable();
+            $table->decimal('inventory_assets', 15, 2)->default(0);
+            $table->decimal('average_quantity', 15, 2)->default(0);
+            $table->decimal('turnover_ratio', 15, 2)->default(0);
+            $table->integer('stock_out_days_estimate')->default(0);
             $table->integer('total_stock_out')->default(0);
             $table->integer('total_stock_in')->default(0);
-            $table->decimal('avg_daily_stock_in', 10, 2)->nullable();
-            $table->decimal('avg_daily_stock_out', 10, 2)->nullable();
+            $table->decimal('avg_daily_stock_in', 15, 2)->default(0);
+            $table->decimal('avg_daily_stock_out', 15, 2)->default(0);
             $table->timestamps();
         });
     }

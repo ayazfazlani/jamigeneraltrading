@@ -2,44 +2,58 @@
 
 namespace App\Livewire;
 
+use App\Models\Analytics;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use App\Models\Item; // Make sure you import the correct model
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ReportsExport;
 
 class Summary extends Component
 {
-    public $dateRange = ''; // Date range variable
-    public $search = ''; // Search term
-    public $reports = []; // Store filtered reports
+    public $dateRange = ''; // Date range in 'YYYY-MM-DD to YYYY-MM-DD'
+    public $search = ''; // Search term for filtering
+    public $reports = []; // Filtered reports
 
-    // Fetch initial reports data
+    // Fetch all reports on mount
     public function mount()
     {
-        $this->reports = Item::all(); // Fetch all records by default
+        $this->fetchReports();
     }
 
-    // Method to filter reports based on date range and search term
-    public function filterReports()
+    // Fetch filtered reports
+    public function fetchReports()
     {
-        $query = Item::query();
+        $query = DB::table('analytics')
+            ->select('id', 'item_name', 'total_stock_in', 'total_stock_out', 'current_quantity', 'inventory_assets');
 
-        // Filter by search term if provided
-        if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%'); // Filter by name
+        // Apply search filter
+        if (!empty($this->search)) {
+            $query->where('item_name', 'like', '%' . $this->search . '%');
         }
 
-        // Filter by date range if provided
-        if ($this->dateRange) {
-            $dates = explode(' - ', $this->dateRange); // Assuming format is 'YYYY-MM-DD - YYYY-MM-DD'
-            if (count($dates) == 2) {
+        // Apply date range filter
+        if (!empty($this->dateRange)) {
+            $dates = explode(' to ', $this->dateRange);
+            if (count($dates) === 2) {
                 $query->whereBetween('created_at', [$dates[0], $dates[1]]);
             }
         }
 
-        // Get filtered reports
         $this->reports = $query->get();
     }
 
-    // Render the Livewire component view
+    // Filter reports dynamically
+    public function filterReports()
+    {
+        $this->fetchReports();
+    }
+
+    // Export filtered reports to Excel
+    public function exportExcel()
+    {
+        return Excel::download(new ReportsExport($this->reports), 'reports.xlsx');
+    }
+
     public function render()
     {
         return view('livewire.summary');
