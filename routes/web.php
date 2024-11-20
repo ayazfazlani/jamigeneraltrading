@@ -37,10 +37,9 @@ Route::get('/adjust', Adjust::class)->name('adjust');
 Route::get('/dashboard', Dashboard::class)->name('dashboard');
 Route::get('/summary', Summary::class)->name('summary');
 Route::get('/login', Login::class)->name('login');
-
+Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 Route::get('/invite', InviteUser::class)->name('invite');
-Route::get('/admin', UserManagement::class)->name('admin');
 
 // routes/web.php
 
@@ -48,6 +47,11 @@ Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->na
 Route::post('/register', [RegisterController::class, 'register']);
 
 
+
+// Route::get('/admin', UserManagement::class)->name('admin')->middleware('role:Admin');
+
+
+Route::get('/admin', UserManagement::class)->name('admin')->middleware('can:admin');
 
 
 
@@ -59,3 +63,17 @@ Route::post('/register', [RegisterController::class, 'register']);
 
 
 Route::get('/roles/{userId}', ManageRoles::class)->name('manage-roles');
+
+
+
+
+
+
+
+Route::get('/forgot-password', App\Livewire\Auth\ForgotPassword::class)
+  ->name('password.request')
+  ->middleware('guest');
+
+Route::get('/reset-password/{token}', App\Livewire\Auth\ResetPassword::class)
+  ->name('password.reset')
+  ->middleware('guest');

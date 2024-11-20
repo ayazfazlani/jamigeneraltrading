@@ -3,7 +3,7 @@
         <header>
             <div class="image-text">
                 <span class="image">
-                     {{-- <img src="icon.png" alt="">  --}}
+                     {{-- <img src="icon.png" alt=""> --}}
                 </span>
 
                 <div class="text logo-text">
@@ -26,58 +26,59 @@
                 <ul class="menu-links">
                     <li class="nav-link">
                         <a wire:navigate href="{{ route('items')}}">
-                            <i class='bx bx-list-ol icon'></i> <!-- Updated icon -->
+                            <i class='bx bx-list-ol icon'></i>
                             <span class="text nav-text">Item List</span>
                         </a>
                     </li>
 
                     <li class="nav-link">
                         <a wire:navigate href="{{ route('stock-in')}}">
-                            <i class='bx bx-cart icon'></i> <!-- Updated icon -->
+                            <i class='bx bx-cart icon'></i>
                             <span class="text nav-text">Stock In</span>
                         </a>
                     </li>
 
                     <li class="nav-link">
                         <a wire:navigate href="{{route('stock-out')}}">
-                            <i class='bx bx-cart-alt icon'></i> <!-- Updated icon -->
+                            <i class='bx bx-cart-alt icon'></i>
                             <span class="text nav-text">Stock Out</span>
                         </a>
                     </li>
 
                     <li class="nav-link"> 
                         <a wire:navigate href="{{route('analytics')}}">
-                            <i class='bx bx-bar-chart-square icon'></i> <!-- Updated icon -->
+                            <i class='bx bx-bar-chart-square icon'></i>
                             <span class="text nav-text">Analytics</span>
                         </a>
                     </li>
 
                     <li class="nav-link">
                         <a wire:navigate href="{{route('transactions')}}">
-                            <i class='bx bx-credit-card icon'></i> <!-- Updated icon -->
+                            <i class='bx bx-credit-card icon'></i>
                             <span class="text nav-text">Transactions</span>
                         </a>
                     </li>
 
                     <li class="nav-link">
-                       <a wire:navigate href="{{route('adjust')}}">
-                            <i class='bx bx-adjust icon'></i> <!-- Updated icon -->
+                        <a wire:navigate href="{{route('adjust')}}">
+                            <i class='bx bx-adjust icon'></i>
                             <span class="text nav-text">Adjust</span>
                         </a>
                     </li>
+
                     <li class="nav-link">
-                       <a wire:navigate href="{{route('summary')}}">
-                            <i class='bx bx-file icon'></i> <!-- Updated icon -->
+                        <a wire:navigate href="{{route('summary')}}">
+                            <i class='bx bx-file icon'></i>
                             <span class="text nav-text">Summary</span>
                         </a>
                     </li>
 
                     <li class="nav-link">
                         <a wire:navigate href="{{route('dashboard')}}">
-                             <i class='bx bx-grid-alt icon'></i> <!-- Updated icon -->
-                             <span class="text nav-text">Dashboard</span>
-                         </a>
-                     </li>
+                            <i class='bx bx-grid-alt icon'></i>
+                            <span class="text nav-text">Dashboard</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -105,11 +106,7 @@
         </div>
 
     </nav>
-
-
 </div>
-
-
 
 @script
 <script>
@@ -119,7 +116,6 @@ const body = document.querySelector('body'),
       searchBtn = body.querySelector(".search-box"),
       modeSwitch = body.querySelector(".toggle-switch"),
       modeText = body.querySelector(".mode-text");
-
 
 toggle.addEventListener("click" , () =>{
     sidebar.classList.toggle("close");
@@ -136,11 +132,7 @@ modeSwitch.addEventListener("click" , () =>{
         modeText.innerText = "Light mode";
     }else{
         modeText.innerText = "Dark mode";
-        
     }
 });
-
-
-
 </script>
 @endscript

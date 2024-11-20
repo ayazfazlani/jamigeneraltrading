@@ -13,5 +13,11 @@
             </div>
             <button type="submit" class="bg-blue-500 text-white rounded w-full py-2">Login</button>
         </form>
+
+        <div class="mt-4 text-center">
+            <a href="{{ route('password.request') }}" class="text-sm text-blue-600 hover:text-blue-500">
+                Forgot your password?
+            </a>
+        </div>
     </div>
 </div>

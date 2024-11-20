@@ -12,6 +12,7 @@
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
     
     <link href="/dist/tailwind.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     {{-- fav icon  --}}
     <link rel="icon" type="image/x-icon" href="{{ asset('Icon.png')}}">
@@ -22,7 +23,7 @@
     <!-- Sidebar Component -->
     @livewire('header')
 
-    <div class="flex">
+<div class="flex">
     @livewire('sidebar')
 
 
@@ -30,6 +31,7 @@
     <div class="flex-1 overflow-x-hidden">
         {{ $slot }}  <!-- This will display the content of Livewire components -->
     </div>
+    
 </div>
     <!-- Scripts Section -->
     @livewireScripts

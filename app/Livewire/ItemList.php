@@ -3,10 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Item;
-use App\Models\Transaction;
+use App\Models\User;
 use Livewire\Component;
-use App\Services\AnalyticsService;
+use App\Models\Transaction;
 use Livewire\WithFileUploads;
+use App\Services\AnalyticsService;
 
 class ItemList extends Component
 {
@@ -30,6 +31,9 @@ class ItemList extends Component
     public function mount()
     {
         $this->items = Item::all();
+        // $superAdminCount = User::with('roles')->get();
+
+        // dd($superAdminCount);
     }
 
     public function selectItem($itemId)
