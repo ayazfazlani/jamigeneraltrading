@@ -22,7 +22,13 @@ class StockOutComponent extends Component
 
     public function loadItems()
     {
-        $this->items = Item::all();
+        if (auth()->user()->hasRole('super admin')) {
+            $this->items = Item::all();
+        } else {
+            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
+            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+        }
+        // $this->items = Item::all();
     }
 
     public function toggleItemSelection($itemId)
@@ -66,6 +72,7 @@ class StockOutComponent extends Component
                         // Log the transaction
                         Transaction::create([
                             'item_id' => $itemModel->id,
+                            'team_id' => auth()->user()->team_id,
                             'item_name' => $itemModel->name,
                             'type' => 'stock out',
                             'quantity' => $item['quantity'],

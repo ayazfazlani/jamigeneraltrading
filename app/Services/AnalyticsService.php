@@ -31,12 +31,13 @@ class AnalyticsService
       case 'created':
         // When an item is created, set initial values
         $analytics->current_quantity = $quantity;
+        $analytics->team_id = auth()->user()->team_id;
         $analytics->inventory_assets = $item->cost * $quantity; // Set the inventory value
         $analytics->average_quantity = $quantity;
         $analytics->turnover_ratio = 0;
         $analytics->stock_out_days_estimate = 0;
         $analytics->total_stock_out = 0;
-        $analytics->total_stock_in = $quantity;
+        $analytics->total_stock_in = 0;
         $analytics->avg_daily_stock_in = 0;
         $analytics->avg_daily_stock_out = 0;
         break;

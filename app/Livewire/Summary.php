@@ -23,15 +23,31 @@ class Summary extends Component
     // Fetch filtered reports
     public function fetchReports()
     {
+        // Start the base query for fetching analytics reports
         $query = DB::table('analytics')
             ->select('id', 'item_name', 'total_stock_in', 'total_stock_out', 'current_quantity', 'inventory_assets');
 
-        // Apply search filter
+        // Apply role-based filtering
+        if (auth()->check()) {
+            if (auth()->user()->hasRole('super admin')) {
+                // Super admin sees all data
+                // No team filter is applied for super admins
+            } else if (auth()->user()->hasRole('team admin')) {
+                // Team admin sees only their team's data
+                $query->where('team_id', auth()->user()->team_id);
+            }
+        } else {
+            // If the user is not authenticated, return empty reports
+            $this->reports = collect();
+            return;
+        }
+
+        // Apply search filter if provided
         if (!empty($this->search)) {
             $query->where('item_name', 'like', '%' . $this->search . '%');
         }
 
-        // Apply date range filter
+        // Apply date range filter if provided
         if (!empty($this->dateRange)) {
             $dates = explode(' to ', $this->dateRange);
             if (count($dates) === 2) {
@@ -39,6 +55,7 @@ class Summary extends Component
             }
         }
 
+        // Execute the query and fetch the filtered reports
         $this->reports = $query->get();
     }
 

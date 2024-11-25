@@ -18,10 +18,10 @@
         <div class="menu-bar">
             <div class="menu">
 
-                <li class="search-box">
+                {{-- <li class="search-box">
                     <i class='bx bx-search icon'></i>
                     <input type="text" placeholder="Search...">
-                </li>
+                </li> --}}
 
                 <ul class="menu-links">
                     <li class="nav-link">
@@ -44,11 +44,10 @@
                             <span class="text nav-text">Stock Out</span>
                         </a>
                     </li>
-
-                    <li class="nav-link"> 
-                        <a wire:navigate href="{{route('analytics')}}">
-                            <i class='bx bx-bar-chart-square icon'></i>
-                            <span class="text nav-text">Analytics</span>
+                    <li class="nav-link">
+                        <a wire:navigate href="{{route('adjust')}}">
+                            <i class='bx bx-adjust icon'></i>
+                            <span class="text nav-text">Adjust</span>
                         </a>
                     </li>
 
@@ -59,13 +58,15 @@
                         </a>
                     </li>
 
-                    <li class="nav-link">
-                        <a wire:navigate href="{{route('adjust')}}">
-                            <i class='bx bx-adjust icon'></i>
-                            <span class="text nav-text">Adjust</span>
+                    <li class="nav-link"> 
+                        <a wire:navigate href="{{route('analytics')}}">
+                            <i class='bx bx-bar-chart-square icon'></i>
+                            <span class="text nav-text">Analytics</span>
                         </a>
                     </li>
 
+                   
+                  
                     <li class="nav-link">
                         <a wire:navigate href="{{route('summary')}}">
                             <i class='bx bx-file icon'></i>
@@ -82,7 +83,7 @@
                 </ul>
             </div>
 
-            <div class="bottom-content">
+            {{-- <div class="bottom-content">
                 <li class="">
                     <a href="#">
                         <i class='bx bx-log-out icon'></i>
@@ -102,7 +103,7 @@
                     </div>
                 </li>
                 
-            </div>
+            </div> --}}
         </div>
 
     </nav>
@@ -117,22 +118,35 @@ const body = document.querySelector('body'),
       modeSwitch = body.querySelector(".toggle-switch"),
       modeText = body.querySelector(".mode-text");
 
-toggle.addEventListener("click" , () =>{
+// Load sidebar state from localStorage
+const sidebarState = localStorage.getItem('sidebarState');
+if (sidebarState === 'closed') {
+    sidebar.classList.add('close');
+}
+
+// Toggle sidebar state and save to localStorage
+toggle.addEventListener("click", () => {
     sidebar.classList.toggle("close");
-})
+    const isClosed = sidebar.classList.contains("close");
+    localStorage.setItem('sidebarState', isClosed ? 'closed' : 'open');
+});
 
-searchBtn.addEventListener("click" , () =>{
+// Ensure the sidebar opens when search is clicked
+searchBtn.addEventListener("click", () => {
     sidebar.classList.remove("close");
-})
+    localStorage.setItem('sidebarState', 'open'); // Save open state to localStorage
+});
 
-modeSwitch.addEventListener("click" , () =>{
+// Toggle dark mode
+modeSwitch.addEventListener("click", () => {
     body.classList.toggle("dark");
     
-    if(body.classList.contains("dark")){
+    if (body.classList.contains("dark")) {
         modeText.innerText = "Light mode";
-    }else{
+    } else {
         modeText.innerText = "Dark mode";
     }
 });
+
 </script>
 @endscript

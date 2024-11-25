@@ -21,7 +21,10 @@
         <!-- Left Section: Select Items -->
         <div class="flex-1 border p-4 rounded-lg shadow-sm bg-white">
             <h2 class="text-lg font-semibold text-gray-600 mb-4">Select Items</h2>
+            @role('viewer')
+            @else
             <button wire:click="$set('isModalOpen', true)" class="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded">+ Add Item</button>
+            @endrole
             <hr class="mb-4" />
             <ul class="space-y-2 max-h-96 overflow-auto">
                 @foreach($items as $item)
@@ -59,7 +62,10 @@
             <p>Total number of items: {{ count($selectedItems) }}</p>
             <p>Total quantity: {{ array_sum(array_column($selectedItems, 'quantity')) }}</p>
         </div>
+        @role('viewer')
+        @else
         <button wire:click="handleStockIn" class="py-2 px-4 rounded bg-green-500 hover:bg-green-600 text-white">Stock In</button>
+        @endrole
     </div>
 
     <!-- Modal to Add New Item -->

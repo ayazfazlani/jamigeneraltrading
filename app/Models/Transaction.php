@@ -30,4 +30,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(StockOut::class);
     }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
 }

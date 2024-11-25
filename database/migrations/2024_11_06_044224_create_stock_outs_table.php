@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('stock_outs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->constrained('items')->onDelete('cascade');
+            $table->unsignedBigInteger('team_id')->nullable();
+            $table->unsignedBigInteger('item_id')->nullable();
             $table->integer('quantity');
             $table->decimal('cost_per_unit', 10, 2)->nullable();
             $table->date('date');

@@ -1,9 +1,10 @@
 <?php
-// app/Http/Livewire/Transactions.php
+
 namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Transaction;
+use App\Models\Item;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TransactionsExport;
 
@@ -29,21 +30,32 @@ class Transactions extends Component
         try {
             $query = Transaction::query();
 
+            // Check user role and filter by team_id if necessary
+            if (auth()->user()->hasRole('super admin')) {
+                // Super admin sees all transactions
+                $this->transactions = $query->get();
+            } else {
+                // Other users see only transactions related to their team
+                $teamId = auth()->user()->team_id;
+                $query->where('team_id', $teamId);
+            }
+
             // Apply filters
             if ($this->filter) {
-                $query->where('item_name', 'like', '%' . $this->filter . '%')
-                    ->orWhere('type', 'like', '%' . $this->filter . '%');
+                $query->where(function ($query) {
+                    $query->where('item_name', 'like', '%' . $this->filter . '%')
+                        ->orWhere('type', 'like', '%' . $this->filter . '%');
+                });
             }
 
             // Apply date range filter
-            if ($this->dateRange['start'] && $this->dateRange['end']) {
+            if (!empty($this->dateRange['start']) && !empty($this->dateRange['end'])) {
                 $query->whereBetween('date', [$this->dateRange['start'], $this->dateRange['end']]);
             }
 
-            // Convert transactions to a collection
-            $this->transactions = collect($query->get());
+            $this->transactions = $query->get();
         } catch (\Exception $e) {
-            session()->flash('error', 'Error fetching transactions.');
+            session()->flash('error', 'Error fetching transactions: ' . $e->getMessage());
         }
     }
 

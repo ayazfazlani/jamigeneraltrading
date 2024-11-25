@@ -3,6 +3,8 @@
         <!-- Heading and Add Button -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold text-gray-800">Item List</h1>
+           @role('viewer')
+           @else
             <button
                 wire:click="toggleModal"
                 class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-500 transition"
@@ -12,6 +14,7 @@
                 </svg>
                 <span>Add Item</span>
             </button>
+            @endrole
         </div>
     
         <!-- Search Bar and In-Stock Button -->

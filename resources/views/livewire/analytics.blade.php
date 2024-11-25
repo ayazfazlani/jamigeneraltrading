@@ -1,4 +1,4 @@
-<div>
+{{-- <div>
     <div class="flex flex-1 z-0 flex-col min-h-screen max-w-screen overflow-x-auto bg-gray-100 text-gray-700">
         <div class="p-6 bg-white shadow-md">
             <h2 class="text-2xl font-semibold">Reports - Analytics</h2>
@@ -65,4 +65,4 @@
         </div>
     </div>
     
-</div>
+</div> --}}

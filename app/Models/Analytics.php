@@ -23,6 +23,7 @@ class Analytics extends Model
         'avg_daily_stock_out' => 'decimal:2', // 15 digits, 2 after the decimal point
     ];
 
+    protected $guarded = [];
 
     public function items()
     {

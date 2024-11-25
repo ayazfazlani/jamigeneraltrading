@@ -2,10 +2,13 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
 use App\Models\Item;
+use App\Models\Summary;
+use Livewire\Component;
+use App\Models\Analytics;
 use App\Models\Transaction;
+use Livewire\WithFileUploads;
+use App\Services\AnalyticsService;
 use Illuminate\Support\Facades\Storage;
 
 class Adjust extends Component
@@ -37,7 +40,13 @@ class Adjust extends Component
     public function fetchItems()
     {
         $this->loading = true;
-        $this->items = Item::all();
+        if (auth()->user()->hasRole('super admin')) {
+            $this->items = Item::all();
+        } else {
+            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
+            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+        }
+
         $this->loading = false;
     }
 
@@ -83,6 +92,7 @@ class Adjust extends Component
 
     public function saveItem()
     {
+        // Validate the input
         $validated = $this->validate([
             'newItem.sku' => 'required',
             'newItem.name' => 'required',
@@ -94,46 +104,70 @@ class Adjust extends Component
             'newItem.image' => 'nullable|image|max:1024',
         ]);
 
+        // Handle image upload if applicable
+        if (isset($this->newItem['image']) && $this->newItem['image']) {
+            $this->newItem['image'] = $this->newItem['image']->store('item_images', 'public');
+        }
+
+        // Check if editing or creating
         if ($this->isEditing && $this->currentItem) {
-            $item = Item::find($this->currentItem['id']);
+            $item = Item::findOrFail($this->currentItem['id']); // Use findOrFail for safety
             $originalQuantity = $item->quantity;
             $quantityDifference = $this->newItem['quantity'] - $originalQuantity;
 
-            if ($quantityDifference != 0) {
-                Transaction::create([
-                    'item_id' => $item->id,
-                    'item_name' => $item->name,
-                    'type' => 'adjusted',
-                    'quantity' => $quantityDifference,
-                    'unit_price' => $item->cost,
-                    'total_price' => $item->cost * $quantityDifference,
-                    'date' => now(),
-                ]);
+            // Delete old image if a new image is uploaded
+            if (isset($this->newItem['image']) && $item->image) {
+                Storage::disk('public')->delete($item->image);
             }
 
-            // Update item data
+            // Update the item
+
             $item->update($this->newItem);
+
+            // Log quantity adjustment as a transaction
+            if ($quantityDifference != 0) {
+                $this->logTransaction($item, 'adjusted', $quantityDifference);
+            }
         } else {
             // Create a new item
+            $this->newItem['team_id'] = auth()->user()->team_id;
             $item = Item::create($this->newItem);
 
-            Transaction::create([
-                'item_id' => $item->id,
-                'item_name' => $item->name,
-                'type' => 'created',
-                'quantity' => $item->quantity,
-                'unit_price' => $item->cost,
-                'total_price' => $item->cost * $item->quantity,
-                'date' => now(),
-            ]);
+            // Log the creation transaction
+            $this->logTransaction($item, 'created', $item->quantity);
+            $analyticsService = new AnalyticsService();
+            $analyticsService->updateAllAnalytics($item, $item->quantity, 'created');
         }
 
+        // Refresh items list and close modal
         $this->fetchItems();
         $this->closeModal();
     }
 
+    /**
+     * Log a transaction for an item.
+     *
+     * @param Item $item
+     * @param string $type
+     * @param int $quantityDifference
+     */
+    private function logTransaction($item, $type, $quantityDifference)
+    {
+        Transaction::create([
+            'item_id' => $item->id,
+            'team_id' => auth()->user()->team_id,
+            'item_name' => $item->name,
+            'type' => $type,
+            'quantity' => $quantityDifference,
+            'unit_price' => $item->cost,
+            'total_price' => $item->cost * $quantityDifference,
+            'date' => now(),
+        ]);
+    }
+
     public function deleteItem($itemId)
     {
+        $teamId = auth()->user()->team_id;
         $item = Item::find($itemId);
 
         if ($item) {
@@ -144,6 +178,7 @@ class Adjust extends Component
 
             Transaction::create([
                 'item_id' => $item->id,
+                'team_id' => $teamId,
                 'item_name' => $item->name,
                 'type' => 'deleted',
                 'quantity' => $item->quantity,
@@ -152,6 +187,8 @@ class Adjust extends Component
                 'date' => now(),
             ]);
 
+            Analytics::where('item_id', $itemId)->delete();
+            Summary::where('item_id', $itemId)->delete();
             // Delete the item
             $item->delete();
             $this->fetchItems();

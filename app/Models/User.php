@@ -14,6 +14,24 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles;
 
 
+    protected $guarded = [];
+    // Relationship with Team
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    // Check if user is a Super Admin
+    public function isSuperAdmin()
+    {
+        return $this->hasRole('super admin');
+    }
+
+    // Check if user is a Team Admin
+    public function isTeamAdmin()
+    {
+        return $this->hasRole('team admin');
+    }
     /**
      * The attributes that are mass assignable.
      *
@@ -47,7 +65,4 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-
-    use HasRoles;
 }

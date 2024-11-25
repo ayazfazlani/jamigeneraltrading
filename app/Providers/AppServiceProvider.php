@@ -25,21 +25,27 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Attach observer to the Item model
-        Item::observe(ItemObserver::class);
+        // Item::observe(ItemObserver::class);
 
-        // Define Gate for admin access
-        // Gate::define('admin', function (User $user) {
-        //     return $user->hasAnyRole(); // Ensure the user has the 'admin' role
-        // });
-
-        Gate::define('admin', function (User $user) {
-            return $user->hasRole('user');
+        Gate::before(function ($user) {
+            if ($user->hasRole('super admin')) {
+                return true;
+            }
         });
 
-        // Create default roles if they don't exist
-        // if (Role::count() === 0) {
-        //     Role::create(['name' => 'admin']);
-        //     Role::create(['name' => 'user']);
-        // }
+        Gate::define('viewer', function ($user) {
+            return $user->role === 'viewer'; // Example condition
+        });
+        // Gate::define('manage-team', function ($user) {
+        //     return $user->hasRole(['super admin', 'team admin']);
+        // });
+
+        // Gate::define('view-items', function ($user) {
+        //     return $user->can('view items');
+        // });
+
+        // Gate::define('edit-items', function ($user) {
+        //     return $user->can('edit items');
+        // });
     }
 }

@@ -10,29 +10,29 @@ class ItemObserver
     /**
      * Handle the Item "created" event.
      */
-    public function created(Item $item): void
-    {
-        $analytics = new Analytics();
-        $analytics->item_id = $item->id;
-        $analytics->item_name = $item->name;
-        $analytics->current_quantity = $item->quantity;
-        $analytics->inventory_assets = $item->quantity * $item->price;
-        $analytics->save();
-    }
+    // public function created(Item $item): void
+    // {
+    //     $analytics = new Analytics();
+    //     $analytics->item_id = $item->id;
+    //     $analytics->item_name = $item->name;
+    //     $analytics->current_quantity = $item->quantity;
+    //     $analytics->inventory_assets = $item->quantity * $item->price;
+    //     $analytics->save();
+    // }
 
     /**
      * Handle the Item "updated" event.
      */
-    public function updated(Item $item): void
-    {
-        $analytics = Analytics::where('item_id', $item->id)->first();
+    // public function updated(Item $item): void
+    // {
+    //     $analytics = Analytics::where('item_id', $item->id)->first();
 
-        if ($analytics) {
-            $analytics->current_quantity = $item->quantity;
-            $analytics->inventory_assets = $item->quantity * $item->price;
-            $analytics->save();
-        }
-    }
+    //     if ($analytics) {
+    //         $analytics->current_quantity = $item->quantity;
+    //         $analytics->inventory_assets = $item->quantity * $item->price;
+    //         $analytics->save();
+    //     }
+    // }
 
     /**
      * Handle the Item "deleted" event.

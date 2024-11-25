@@ -10,17 +10,7 @@ class Item extends Model
     use HasFactory;
 
     protected $guarded = [];
-    protected $fillable = [
-        'sku',
-        'name',
-        'image',
-        'cost',
-        'price',
-        'type',
-        'brand',
-        'quantity',
-        'initial_quantity'
-    ];
+
 
     public function stockIns()
     {

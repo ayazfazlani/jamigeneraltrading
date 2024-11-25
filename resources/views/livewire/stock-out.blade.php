@@ -64,10 +64,12 @@
                 <p>Total number of items: {{ count($selectedItems) }}</p>
                 <p>Total quantity: {{ array_sum(array_column($selectedItems, 'quantity')) }}</p>
             </div>
-    
+      @role('viewer')
+      @else
             <button wire:click="handleStockOut" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
                 Stock Out
             </button>
+      @endrole
         </div>
     </div>
     

@@ -11,13 +11,13 @@
 
     <div class="flex items-center mb-4">
         <!-- Date Range input -->
-        <label class="mr-2">Select Date Range:</label>
+        {{-- <label class="mr-2">Select Date Range:</label>
         <input
             type="text"
             placeholder="Select Date Range"
             class="border border-gray-300 rounded p-2 mr-2"
             wire:model="dateRange"
-        />
+        /> --}}
         <!-- Search by Name input -->
         <input
             type="text"
@@ -30,7 +30,7 @@
         </button>
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto overflow-x-auto max-h-[400px] overflow-y-auto">
         <table class="min-w-full border border-gray-300">
             <thead class="bg-gray-100">
                 <tr>
