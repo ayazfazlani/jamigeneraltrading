@@ -57,16 +57,6 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">{{ $user->email }}</div>
                             </td>
-                            {{-- <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($user->getRoleNames() as $role)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
-                                            {{ $role }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </td> --}}
-
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-wrap gap-2">
                                     @php
@@ -92,12 +82,16 @@
                                             <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
                                         @endforeach
                                     </select>
+                                    <button wire:click="confirmDelete({{ $user->id }})"
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        Delete
+                                    </button>
                                     <button wire:click="assignRole({{ $user->id }})" 
                                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         Assign
                                     </button>
                                     <button wire:click="removeAllRoles({{ $user->id }})"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-400 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
                                         Remove All
                                     </button>
                                 </div>
@@ -108,4 +102,24 @@
             </table>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Confirm Delete</h2>
+                <p class="text-sm text-gray-600">Are you sure you want to delete this user? This action cannot be undone.</p>
+                <div class="mt-4 flex justify-end space-x-3">
+                    <button wire:click="deleteUser"
+                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Yes, Delete
+                    </button>
+                    <button wire:click="cancelDelete"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

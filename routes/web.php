@@ -43,7 +43,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
 
-  // Route::get('/admin', UserManagement::class)->name('admin');
+  // Route::get('/user', UserManagement::class)->name('user');
   Route::get('/admin', TeamManagement::class)
     ->name('admin');
 });
@@ -90,3 +90,7 @@ Route::get('/reset-password/{token}', App\Livewire\Auth\ResetPassword::class)
 //   Route::get('/team', TeamManagement::class)
 //     ->name('team-management');
 // });
+
+
+
+Route::get('/user', UserManagement::class)->name('user');

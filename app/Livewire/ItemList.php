@@ -4,10 +4,12 @@ namespace App\Livewire;
 
 use App\Models\Item;
 use App\Models\User;
-use App\Models\Transaction;
 use Livewire\Component;
+use App\Models\Transaction;
+use App\Imports\ItemsImport;
 use Livewire\WithFileUploads;
 use App\Services\AnalyticsService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ItemList extends Component
 {
@@ -28,6 +30,31 @@ class ItemList extends Component
     public $isModalOpen = false;
     public $selectedItem = null; // To store the selected item details
     public $team_id = null;
+
+
+    public $isImportModalOpen = false;
+    public $importFile;
+
+    public function toggleImportModal()
+    {
+        $this->isImportModalOpen = !$this->isImportModalOpen;
+    }
+
+    public function importItems()
+    {
+        $this->validate([
+            'importFile' => 'required|mimes:xlsx,csv',
+        ]);
+
+        Excel::import(new ItemsImport, $this->importFile->getRealPath());
+
+        // Refresh the items list after import
+        $this->items = Item::where('team_id', $this->team_id)->get();
+
+        // Reset the file input and close the modal
+        $this->importFile = null;
+        $this->toggleImportModal();
+    }
 
     public function mount($team_id = null)
     {

@@ -3,17 +3,30 @@
         <!-- Heading and Add Button -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold text-gray-800">Item List</h1>
+
+
            @role('viewer')
            @else
+        <div class="flex gap-1">
             <button
-                wire:click="toggleModal"
-                class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-500 transition"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Add Item</span>
-            </button>
+            wire:click="toggleImportModal"
+            class="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-500 transition"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Import Items</span>
+        </button>
+                <button
+                    wire:click="toggleModal"
+                    class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-500 transition"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add Item</span>
+                </button>
+        </div>
             @endrole
         </div>
     
@@ -108,4 +121,21 @@
             </div>
         </div>
     @endif
+
+
+    @if($isImportModalOpen)
+    <div class="fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-gray-600">Import Items</h3>
+            <div class="space-y-4">
+                <input type="file" wire:model="importFile" class="w-full p-2 border border-gray-300 rounded-md">
+                <div class="flex justify-end mt-4">
+                    <button wire:click="importItems" class="px-4 py-2 bg-green-600 text-white rounded-md">Upload</button>
+                    <button wire:click="toggleImportModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md ml-2">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 </div>
