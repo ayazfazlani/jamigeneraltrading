@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\TeamScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Analytics extends Model
 {
-    use HasFactory;
+    use HasFactory, TeamScope;
+
+    protected $guarded = [];
 
     protected $casts = [
         'item_id' => 'integer', // Assuming item_id is an integer
@@ -23,10 +26,24 @@ class Analytics extends Model
         'avg_daily_stock_out' => 'decimal:2', // 15 digits, 2 after the decimal point
     ];
 
-    protected $guarded = [];
-
-    public function items()
+    public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    // Add team relationship
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($analytics) {
+            if ($analytics->item) {
+                $analytics->team_id = $analytics->item->team_id;
+                $analytics->user_id = $analytics->item->user_id;
+            }
+        });
     }
 }

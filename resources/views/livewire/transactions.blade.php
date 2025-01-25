@@ -12,7 +12,7 @@
             <div class="relative">
                 <input
                     type="text"
-                    wire:model="filter"
+                    wire:model.live="filter"
                     class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
                     placeholder="Search by tags..."
                 />

@@ -31,7 +31,11 @@
 
     <!-- Main Content Section -->
     <div class="flex-1 overflow-x-hidden">
-        {{ $slot }}  <!-- This will display the content of Livewire components -->
+    @hasSection('content')
+        @yield('content') <!-- Use section if defined -->
+    @else
+        {{ $slot }} <!-- Fall back to slot if no section -->
+    @endif <!-- This will display the content of Livewire components -->
     </div>
     
 </div>

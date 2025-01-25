@@ -20,32 +20,22 @@ class Dashboard extends Component
     {
         // Check if the user is authenticated
         if (auth()->check()) {
-            // Super admin can see all data
             if (auth()->user()->hasRole('super admin')) {
+                // Super admin can see all data
                 $this->summary = [
                     'totalInventory' => Analytics::sum('current_quantity'),
                     'stockIn' => Analytics::sum('total_stock_in'),
                     'stockOut' => Analytics::sum('total_stock_out'),
                 ];
-            }
-            // Team admin can only see data for their team
-            else
-            //  if (auth()->user()->hasRole('team admin', 'viewer', 'editor'))
-            {
+            } else {
+                // Team admin sees data for all teams they belong to
+                $teamId = (int) session('current_team_id');
                 $this->summary = [
-                    'totalInventory' => Analytics::where('team_id', auth()->user()->team_id)->sum('current_quantity'),
-                    'stockIn' => Analytics::where('team_id', auth()->user()->team_id)->sum('total_stock_in'),
-                    'stockOut' => Analytics::where('team_id', auth()->user()->team_id)->sum('total_stock_out'),
+                    'totalInventory' => Analytics::where('team_id', $teamId)->sum('current_quantity'),
+                    'stockIn' => Analytics::where('team_id', $teamId)->sum('total_stock_in'),
+                    'stockOut' => Analytics::where('team_id', $teamId)->sum('total_stock_out'),
                 ];
             }
-            // else {
-            //     // If the user is neither super admin nor team admin, you can define what should happen
-            //     $this->summary = [
-            //         'totalInventory' => 0,
-            //         'stockIn' => 0,
-            //         'stockOut' => 0,
-            //     ];
-            // }
         } else {
             // Handle unauthenticated users
             $this->summary = [
@@ -60,8 +50,8 @@ class Dashboard extends Component
     {
         // Ensure the user is authenticated
         if (auth()->check()) {
-            // Super admin can see all data
             if (auth()->user()->hasRole('super admin')) {
+                // Super admin can see all data
                 $this->totalInventoryData = Analytics::select('item_id', 'current_quantity')
                     ->get()
                     ->map(function ($item) {
@@ -70,10 +60,10 @@ class Dashboard extends Component
                             'quantity' => $item->current_quantity,
                         ];
                     });
-            }
-            // Team admin can only see data for their team
-            else if (auth()->user()->hasRole('team admin')) {
-                $this->totalInventoryData = Analytics::where('team_id', auth()->user()->team_id)
+            } else {
+                // Team admin sees data for all teams they belong to
+                $teamId = (int) session('current_team_id');
+                $this->totalInventoryData = Analytics::where('team_id', $teamId)
                     ->select('item_id', 'current_quantity')
                     ->get()
                     ->map(function ($item) {
@@ -82,9 +72,6 @@ class Dashboard extends Component
                             'quantity' => $item->current_quantity,
                         ];
                     });
-            } else {
-                // If the user is neither super admin nor team admin, return empty data
-                $this->totalInventoryData = collect();
             }
         } else {
             // Handle unauthenticated users

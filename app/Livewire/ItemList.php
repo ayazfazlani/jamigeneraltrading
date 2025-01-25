@@ -9,7 +9,10 @@ use App\Models\Transaction;
 use App\Imports\ItemsImport;
 use Livewire\WithFileUploads;
 use App\Services\AnalyticsService;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 
 class ItemList extends Component
 {
@@ -56,13 +59,34 @@ class ItemList extends Component
         $this->toggleImportModal();
     }
 
-    public function mount($team_id = null)
+    public function mount()
     {
-        if (auth()->user()->hasRole('super admin')) {
-            $this->items = Item::get();
+        // Fetch items based on the user's role
+        $this->fetchItems();
+    }
+
+    public function fetchItems()
+    {
+        if (Auth::user()->hasRole('super admin')) {
+            // Super admin can see all items
+            $this->items = Item::all();
         } else {
-            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+            // Regular users see items based on their current team
+            // $this->items = Item::where('team_id', Auth::user()->team_id)->get();
+            // Fetch items for all teams the user belongs to
+            // Regular users see items based on their teams
+
+            // $teamIds = Auth::user()->teams()->pluck('teams.id'); // Specify the table name
+
+            $teamId = (int) session('current_team_id');
+            // dump($teamId);
+            if (!$teamId) {
+                // Handle the case where no team is active
+                session()->flash('error', 'No active team selected.');
+                $this->items = [];
+                return;
+            }
+            $this->items = Item::where('team_id', $teamId)->get();
         }
     }
 
@@ -86,34 +110,33 @@ class ItemList extends Component
             'newItem.type' => 'required|string|max:255',
             'newItem.brand' => 'required|string|max:255',
             'newItem.quantity' => 'required|numeric',
-            'image' => 'nullable|image|max:2048', // Optional image field
+            'image' => 'nullable|image|max:2048',
         ]);
 
         // Create the new item
-        $item = new Item();
-        $item->team_id = $this->team_id;
-        $item->sku = $this->newItem['sku'];
-        $item->name = $this->newItem['name'];
-        $item->cost = $this->newItem['cost'];
-        $item->price = $this->newItem['price'];
-        $item->type = $this->newItem['type'];
-        $item->brand = $this->newItem['brand'];
-        $item->quantity = $this->newItem['quantity'];
-        // $item->image = $this->newItem['image'];
+        $item = Item::create([
+            'team_id' => session('current_team_id'),
+            'user_id' => Auth::user()->id,
+            'sku' => $this->newItem['sku'],
+            'name' => $this->newItem['name'],
+            'cost' => $this->newItem['cost'],
+            'price' => $this->newItem['price'],
+            'type' => $this->newItem['type'],
+            'brand' => $this->newItem['brand'],
+            'quantity' => $this->newItem['quantity'],
+        ]);
 
         // Handle image upload (if any)
         if ($this->image) {
             $item->image = $this->image->store('item_images', 'public');
-            // dd($item->image);
+            $item->save();
         }
-
-        // Save the item to the database
-        $item->save();
 
         // Log the transaction for this item creation
         Transaction::create([
             'item_id' => $item->id,
-            'team_id' => $item->team_id,
+            'team_id' => Auth()->user()->team_id,
+            'user_id' => Auth::user()->id,
             'item_name' => $item->name,
             'type' => 'created',
             'quantity' => $item->quantity,

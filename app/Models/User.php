@@ -16,10 +16,11 @@ class User extends Authenticatable
 
     protected $guarded = [];
     // Relationship with Team
-    public function team()
+    public function teams()
     {
-        return $this->belongsTo(Team::class);
+        return $this->belongsToMany(Team::class);
     }
+
 
     // Check if user is a Super Admin
     public function isSuperAdmin()
@@ -41,6 +42,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'current_team_id'
     ];
 
     /**
@@ -64,5 +66,38 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Add relationship for current team
+    public function currentTeam()
+    {
+        return $this->belongsTo(Team::class, 'current_team_id');
+    }
+
+    // Helper method to switch current team
+    public function switchTeam($teamId)
+    {
+        // Verify user belongs to this team
+        if (!$this->teams()->where('team_id', $teamId)->exists()) {
+            return false;
+        }
+
+        $this->current_team_id = $teamId;
+        $this->save();
+
+        // Clear any cached permissions
+        $this->forgetCachedPermissions();
+
+        return true;
+    }
+
+    // Get all teams user has access to
+    public function accessibleTeams()
+    {
+        if ($this->hasRole('super admin')) {
+            return Team::all();
+        }
+
+        return $this->teams;
     }
 }

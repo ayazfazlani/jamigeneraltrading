@@ -33,6 +33,10 @@ class UserManagement extends Component
     public function sendInvitation()
     {
         $this->validate();
+        if (User::where('email', $this->email)->exists()) {
+            session()->flash('status', 'Email already registered.');
+            return;
+        }
 
         $token = Str::random(32);
         InvitationToken::create([

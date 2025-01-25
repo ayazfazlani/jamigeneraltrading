@@ -4,11 +4,12 @@ namespace App\Livewire;
 
 use App\Models\Item;
 use App\Models\StockIn;
-use App\Models\Transaction;
 use Livewire\Component;
+use App\Models\Transaction;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\DB;
 use App\Services\AnalyticsService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class StockInComponent extends Component
 {
@@ -35,13 +36,26 @@ class StockInComponent extends Component
 
     public function loadItems()
     {
-        if (auth()->user()->hasRole('super admin')) {
+        // if (auth()->user()->hasRole('super admin')) {
+        //     $this->items = Item::all();
+        // } else {
+        //     $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
+        //     $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+        // }
+        if (Auth::user()->hasRole('super admin')) {
+            // Super admin can see all items
             $this->items = Item::all();
         } else {
-            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+            $teamId = (int) session('current_team_id');
+            // dump($teamId);
+            if (!$teamId) {
+                // Handle the case where no team is active
+                session()->flash('error', 'No active team selected.');
+                $this->items = [];
+                return;
+            }
+            $this->items = Item::where('team_id', $teamId)->get();
         }
-        // $this->items = Item::all()->toArray();
     }
 
     public function toggleItemSelection($itemId)
@@ -97,13 +111,14 @@ class StockInComponent extends Component
             'brand' => $this->newItem['brand'],
             'quantity' => $this->newItem['quantity'],
             'image' => $imagePath,
-            'team_id' => auth()->user()->team_id,
+            'team_id' => session('current_team_id'),
         ]);
 
         // Create a transaction record for the new item
         Transaction::create([
             'item_id' => $item->id,
-            'team_id' => $item->team_id,
+            'team_id' => session('current_team_id'),
+            'user_id' => Auth::user()->id,
             'item_name' => $item->name,
             'type' => 'created',
             'quantity' => $item->quantity,

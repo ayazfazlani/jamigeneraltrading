@@ -4,44 +4,47 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Transaction;
-use App\Models\Item;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TransactionsExport;
+use Illuminate\Support\Facades\Auth;
 
 class Transactions extends Component
 {
-    public $transactions = [];
-    public $selectedTransaction = null;
-    public $filter = '';
+    public $transactions; // Holds transactions to display
+    public $selectedTransaction = null; // Selected transaction for additional actions
+    public $filter = ''; // Filter for search input
     public $dateRange = [
         'start' => '',
         'end' => ''
-    ];
+    ]; // Date range filter
+    public $currentTeamId; // Tracks the currently selected team ID
 
-    // Fetch transactions when the component is mounted
+    // Initialize component
     public function mount()
     {
+        $this->currentTeamId = (int) session('current_team_id', 0); // Default to 0 if no team ID in session
         $this->fetchTransactions();
     }
 
-    // Fetch all transactions from the database
+    // Fetch transactions from the database
     public function fetchTransactions()
     {
         try {
+            // Initialize query for transactions
             $query = Transaction::query();
 
-            // Check user role and filter by team_id if necessary
-            if (auth()->user()->hasRole('super admin')) {
-                // Super admin sees all transactions
-                $this->transactions = $query->get();
-            } else {
-                // Other users see only transactions related to their team
-                $teamId = auth()->user()->team_id;
-                $query->where('team_id', $teamId);
+            // Apply team filter if the user is not a super admin
+            if (!Auth::user()->hasRole('super admin')) {
+                if ($this->currentTeamId) {
+                    $query->where('team_id', $this->currentTeamId); // Filter by current team ID
+                } else {
+                    $this->transactions = collect(); // No team selected, return empty collection
+                    return;
+                }
             }
 
-            // Apply filters
-            if ($this->filter) {
+            // Apply search filter
+            if (!empty($this->filter)) {
                 $query->where(function ($query) {
                     $query->where('item_name', 'like', '%' . $this->filter . '%')
                         ->orWhere('type', 'like', '%' . $this->filter . '%');
@@ -53,31 +56,49 @@ class Transactions extends Component
                 $query->whereBetween('date', [$this->dateRange['start'], $this->dateRange['end']]);
             }
 
+            // Fetch transactions
             $this->transactions = $query->get();
         } catch (\Exception $e) {
             session()->flash('error', 'Error fetching transactions: ' . $e->getMessage());
         }
     }
 
-    // Handle selecting a transaction
-    public function handleTransactionClick($transactionId)
+    // Handle switching the current team
+    public function switchTeam($teamId)
     {
-        $this->selectedTransaction = $this->transactions->firstWhere('id', $transactionId);
+        try {
+            $this->currentTeamId = $teamId;
+            session(['current_team_id' => $teamId]); // Store the selected team ID in session
+            $this->fetchTransactions(); // Refresh transactions
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error switching team: ' . $e->getMessage());
+        }
     }
 
-    // Export to Excel
-    public function exportToExcel()
-    {
-        return Excel::download(new TransactionsExport($this->transactions), 'transactions.xlsx');
-    }
-
+    // filter button click 
     // Handle filter button click
     public function applyFilters()
     {
         $this->fetchTransactions();
     }
+    // Export transactions to Excel
+    public function exportToExcel()
+    {
+        if ($this->transactions->isEmpty()) {
+            session()->flash('error', 'No transactions available to export.');
+            return;
+        }
 
-    // Get color for transaction type
+        return Excel::download(new TransactionsExport($this->transactions), 'transactions-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    // Handle transaction selection
+    public function handleTransactionClick($transactionId)
+    {
+        $this->selectedTransaction = $this->transactions->firstWhere('id', $transactionId);
+    }
+
+    // Get CSS class for transaction type
     public function getTransactionColor($type)
     {
         return match ($type) {
@@ -87,10 +108,11 @@ class Transactions extends Component
         };
     }
 
+    // Render the Livewire view
     public function render()
     {
         return view('livewire.transactions', [
-            'filteredTransactions' => $this->transactions
+            'filteredTransactions' => $this->transactions,
         ]);
     }
 }

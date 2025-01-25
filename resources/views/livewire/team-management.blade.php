@@ -38,40 +38,42 @@
     </div>
 
     <!-- Add User to Team Section -->
-    <div class="mb-8 bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-700 mb-4">Add User to Team</h2>
-        <div class="flex space-x-4">
-            <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
-                <select 
-                    wire:model="selectedUsers" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select a User</option>
-                    @foreach($availableUsers as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select Team</label>
-                <select 
-                    wire:model="selectedTeam" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select a Team</option>
-                    @foreach($teams as $team)
-                        <option value="{{ $team->id }}">{{ $team->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="flex items-end">
-                <button 
-                    wire:click="addUserToTeam"
-                    class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                    Add User
-                </button>
-            </div>
+
+<!-- Add User to Team Section -->
+<div class="mb-8 bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Add User to Team</h2>
+    <div class="flex space-x-4">
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
+            <select 
+                wire:model="selectedUsers" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Select a User</option>
+                @foreach($availableUsers as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Team</label>
+            <select 
+                wire:model="selectedTeam" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Select a Team</option>
+                @foreach($teams as $team)
+                    <option value="{{ $team->id }}">{{ $team->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button 
+                wire:click="addUserToTeam"
+                class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                Add User
+            </button>
         </div>
     </div>
+</div>
 
     <!-- Change User Role Section -->
     <div class="mb-8 bg-white rounded-lg shadow-md p-6">
@@ -123,11 +125,21 @@
                         <h4 class="text-sm font-semibold text-gray-700 mb-2">Team Members</h4>
                         <ul class="space-y-1">
                             @foreach($team->users as $user)
-                                <li class="flex justify-between text-sm">
+                                <li class="flex justify-between items-center text-sm">
                                     <span>{{ $user->name }}</span>
-                                    <span class="text-xs text-gray-500">
-                                        {{ $user->getRoleNames()->first() ?? 'No Role' }}
-                                    </span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">
+                                            {{ $user->getRoleNames()->first() ?? 'No Role' }}
+                                        </span>
+                                        <button 
+                                            wire:click="removeUserFromTeam({{ $user->id }}, {{ $team->id }})"
+                                            class="text-red-600 hover:text-red-800 text-sm"
+                                            onclick="return confirm('Are you sure you want to remove this user from the team?')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

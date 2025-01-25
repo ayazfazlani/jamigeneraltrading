@@ -86,7 +86,7 @@ Route::get('/reset-password/{token}', App\Livewire\Auth\ResetPassword::class)
 
 // Route::middleware(['auth'])->middleware('can:super admin')->group(function () {
 
-//   Route::get('/admin', UserManagement::class)->name('admin');
+// Route::get('/admin', UserManagement::class)->name('admin');
 //   Route::get('/team', TeamManagement::class)
 //     ->name('team-management');
 // });

@@ -101,7 +101,7 @@
     
     <!-- Modal Form for Adding Item -->
     @if($isModalOpen)
-        <div class="fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="fixed inset-0 bg-gray-700 bg-opacity-50 overflow-y-auto flex items-center justify-center z-50">
             <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
                 <h3 class="text-xl font-semibold mb-4 text-gray-600">Add New Item</h3>
                 <div class="space-y-4">

@@ -24,8 +24,9 @@ class Team extends Model
     // Relationship with Users (Team Members)
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class);
     }
+
 
     // Validate team membership requirements
     public function validateTeamMembership()

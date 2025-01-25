@@ -14,40 +14,50 @@ class Summary extends Component
     public $search = ''; // Search term for filtering
     public $reports = []; // Filtered reports
 
-    // Fetch all reports on mount
+    // Lifecycle hook: Fetch all reports on component mount
     public function mount()
     {
         $this->fetchReports();
     }
 
-    // Fetch filtered reports
+    /**
+     * Fetch filtered reports from the database.
+     */
     public function fetchReports()
     {
-        // Start the base query for fetching analytics reports
-        $query = DB::table('analytics')
-            ->select('id', 'item_name', 'total_stock_in', 'total_stock_out', 'current_quantity', 'inventory_assets');
+        $query = Analytics::query()
+            ->select('id', 'item_name', 'total_stock_in', 'total_stock_out', 'current_quantity', 'inventory_assets', 'team_id', 'created_at');
 
-        // Apply role-based filtering
+        // Check user role and apply team-based filtering
         if (auth()->check()) {
             if (auth()->user()->hasRole('super admin')) {
-                // Super admin sees all data
-                // No team filter is applied for super admins
-            } else if (auth()->user()->hasRole('team admin')) {
-                // Team admin sees only their team's data
-                $query->where('team_id', auth()->user()->team_id);
+                // Super admin sees all reports (no additional filters applied)
+            } else {
+                // Other roles: Filter by team ID
+                $currentTeamId = session('current_team_id');
+
+                if ($currentTeamId) {
+                    $query->where('team_id', $currentTeamId);
+                } else {
+                    // Handle missing or invalid team ID
+                    $this->reports = collect();
+                    session()->flash('error', 'No team selected. Please select a valid team.');
+                    return;
+                }
             }
         } else {
-            // If the user is not authenticated, return empty reports
+            // Unauthenticated users: No reports available
             $this->reports = collect();
+            session()->flash('error', 'Access denied. Please log in.');
             return;
         }
 
-        // Apply search filter if provided
+        // Apply search filter
         if (!empty($this->search)) {
             $query->where('item_name', 'like', '%' . $this->search . '%');
         }
 
-        // Apply date range filter if provided
+        // Apply date range filter
         if (!empty($this->dateRange)) {
             $dates = explode(' to ', $this->dateRange);
             if (count($dates) === 2) {
@@ -55,24 +65,38 @@ class Summary extends Component
             }
         }
 
-        // Execute the query and fetch the filtered reports
+        // Execute the query and set the filtered reports
         $this->reports = $query->get();
     }
 
-    // Filter reports dynamically
+    /**
+     * Trigger dynamic filtering of reports.
+     */
     public function filterReports()
     {
         $this->fetchReports();
     }
 
-    // Export filtered reports to Excel
+    /**
+     * Export filtered reports to Excel.
+     */
     public function exportExcel()
     {
-        return Excel::download(new ReportsExport($this->reports), 'reports.xlsx');
+        if ($this->reports->isEmpty()) {
+            session()->flash('error', 'No reports available to export.');
+            return;
+        }
+
+        return Excel::download(new ReportsExport($this->reports), 'reports-' . now()->format('Y-m-d') . '.xlsx');
     }
 
+    /**
+     * Render the Livewire view.
+     */
     public function render()
     {
-        return view('livewire.summary');
+        return view('livewire.summary', [
+            'reports' => $this->reports,
+        ]);
     }
 }

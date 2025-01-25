@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Item;
 use App\Models\Analytics;
+use Illuminate\Support\Facades\Auth;
 
 class AnalyticsService
 {
@@ -32,6 +33,7 @@ class AnalyticsService
         // When an item is created, set initial values
         $analytics->current_quantity = $quantity;
         $analytics->team_id = auth()->user()->team_id;
+        $analytics->user_id = Auth::user()->id;
         $analytics->inventory_assets = $item->cost * $quantity; // Set the inventory value
         $analytics->average_quantity = $quantity;
         $analytics->turnover_ratio = 0;

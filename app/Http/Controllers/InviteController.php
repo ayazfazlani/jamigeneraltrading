@@ -24,7 +24,7 @@ class InviteController extends Controller
         InvitationToken::create([
             'email' => $request->email,
             'token' => $token,
-            'expires_at' => now()->addHours(24),
+            'expires_at' => now()->addMinutes(20),
             dd($request->email) // Token valid for 24 hours
         ]);
 

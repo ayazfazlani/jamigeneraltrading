@@ -33,6 +33,7 @@ class Login extends Component
     public function logout()
     {
         Auth::logout();
+        session()->forget('current_team_id'); // Clear the current team ID
         return redirect('/')->with('status', 'Logged out successfully.');
     }
 

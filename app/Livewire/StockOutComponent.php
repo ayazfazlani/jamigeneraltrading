@@ -3,11 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\Item;
+use Livewire\Component;
 use App\Models\StockOut;
 use App\Models\Transaction;
-use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 use App\Services\AnalyticsService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class StockOutComponent extends Component
 {
@@ -22,13 +23,26 @@ class StockOutComponent extends Component
 
     public function loadItems()
     {
-        if (auth()->user()->hasRole('super admin')) {
+        // if (auth()->user()->hasRole('super admin')) {
+        //     $this->items = Item::all();
+        // } else {
+        //     $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
+        //     $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+        // }
+        if (Auth::user()->hasRole('super admin')) {
+            // Super admin can see all items
             $this->items = Item::all();
         } else {
-            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+            $teamId = (int) session('current_team_id');
+            // dump($teamId);
+            if (!$teamId) {
+                // Handle the case where no team is active
+                session()->flash('error', 'No active team selected.');
+                $this->items = [];
+                return;
+            }
+            $this->items = Item::where('team_id', $teamId)->get();
         }
-        // $this->items = Item::all();
     }
 
     public function toggleItemSelection($itemId)
@@ -72,7 +86,8 @@ class StockOutComponent extends Component
                         // Log the transaction
                         Transaction::create([
                             'item_id' => $itemModel->id,
-                            'team_id' => auth()->user()->team_id,
+                            'team_id' => session('current_team_id'),
+                            'user_id' => Auth::user()->id,
                             'item_name' => $itemModel->name,
                             'type' => 'stock out',
                             'quantity' => $item['quantity'],

@@ -5,13 +5,37 @@ namespace App\Models;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\TeamScope;
+use Illuminate\Support\Facades\Auth;
 
 class Item extends Model
 {
-    use HasFactory;
+    use HasFactory, TeamScope;
 
-    protected $guarded = [];
     public $timestamps = false;
+
+    protected $fillable = [
+        'team_id',
+        'user_id',
+        'sku',
+        'name',
+        'image',
+        'cost',
+        'price',
+        'type',
+        'brand',
+        'quantity'
+    ];
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function stockIns()
     {

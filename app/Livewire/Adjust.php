@@ -9,6 +9,7 @@ use App\Models\Analytics;
 use App\Models\Transaction;
 use Livewire\WithFileUploads;
 use App\Services\AnalyticsService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class Adjust extends Component
@@ -20,21 +21,27 @@ class Adjust extends Component
     public $isModalOpen = false;
     public $isEditing = false;
     public $currentItem = null;
-    public $newItem = [
-        'sku' => '',
-        'name' => '',
-        'cost' => '',
-        'price' => '',
-        'type' => '',
-        'brand' => '',
-        'image' => null,
-        'quantity' => 0,
-    ];
+    public $newItem = [];
     public $loading = false;
 
     public function mount()
     {
+        $this->resetNewItem();
         $this->fetchItems();
+    }
+
+    private function resetNewItem()
+    {
+        $this->newItem = [
+            'sku' => '',
+            'name' => '',
+            'cost' => '',
+            'price' => '',
+            'type' => '',
+            'brand' => '',
+            'image' => null,
+            'quantity' => 0,
+        ];
     }
 
     public function fetchItems()
@@ -43,17 +50,16 @@ class Adjust extends Component
         if (auth()->user()->hasRole('super admin')) {
             $this->items = Item::all();
         } else {
-            $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-            $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
+            $teamId = session('current_team_id');
+            $this->items = Item::where('team_id', $teamId)->get();
         }
-
         $this->loading = false;
     }
 
     public function openModal($itemId = null)
     {
         if ($itemId) {
-            $item = Item::find($itemId);
+            $item = Item::findOrFail($itemId);
             $this->currentItem = $item;
             $this->newItem = $item->toArray();
             $this->isEditing = true;
@@ -71,91 +77,72 @@ class Adjust extends Component
         $this->resetNewItem();
     }
 
-    public function handleInputChange($name, $value)
+    private function getValidationRules()
     {
-        $this->newItem[$name] = $value;
+        return [
+            'newItem.sku' => 'nullable|string|max:255',
+            'newItem.name' => 'required|string|max:255',
+            'newItem.cost' => 'nullable|numeric|min:0',
+            'newItem.price' => 'nullable|numeric|min:0',
+            'newItem.type' => 'nullable|string|max:255',
+            'newItem.brand' => 'nullable|string|max:255',
+            'newItem.quantity' => 'required|numeric|min:0',
+            'newItem.image' => 'nullable|image|max:3072',
+        ];
     }
 
-    public function handleImageChange($file)
+    private function handleImageUpload($image, $oldImage = null)
     {
-        if ($file) {
-            // Delete old image if exists (on update)
-            if ($this->isEditing && $this->currentItem && $this->currentItem['image']) {
-                // Delete the old image from storage
-                Storage::disk('public')->delete($this->currentItem['image']);
+        if ($image) {
+            if ($oldImage) {
+                Storage::disk('public')->delete($oldImage);
             }
-
-            // Store the new image in 'item_images' folder
-            $this->newItem['image'] = $file->store('item_images', 'public');
+            return $image->store('item_images', 'public');
         }
+        return $oldImage;
     }
 
     public function saveItem()
     {
-        // Validate the input
-        $validated = $this->validate([
-            'newItem.sku' => 'required',
-            'newItem.name' => 'required',
-            'newItem.cost' => 'required|numeric',
-            'newItem.price' => 'required|numeric',
-            'newItem.type' => 'required',
-            'newItem.brand' => 'required',
-            'newItem.quantity' => 'required|numeric',
-            'newItem.image' => 'nullable|image|max:1024',
-        ]);
+        $validated = $this->validate($this->getValidationRules());
 
-        // Handle image upload if applicable
-        if (isset($this->newItem['image']) && $this->newItem['image']) {
-            $this->newItem['image'] = $this->newItem['image']->store('item_images', 'public');
-        }
-
-        // Check if editing or creating
         if ($this->isEditing && $this->currentItem) {
-            $item = Item::findOrFail($this->currentItem['id']); // Use findOrFail for safety
+            $item = Item::findOrFail($this->currentItem['id']);
             $originalQuantity = $item->quantity;
             $quantityDifference = $this->newItem['quantity'] - $originalQuantity;
 
-            // Delete old image if a new image is uploaded
-            if (isset($this->newItem['image']) && $item->image) {
-                Storage::disk('public')->delete($item->image);
-            }
-
-            // Update the item
+            $this->newItem['image'] = $this->handleImageUpload(
+                $this->newItem['image'] ?? null,
+                $item->image
+            );
 
             $item->update($this->newItem);
 
-            // Log quantity adjustment as a transaction
             if ($quantityDifference != 0) {
                 $this->logTransaction($item, 'adjusted', $quantityDifference);
             }
         } else {
-            // Create a new item
+            $this->newItem['image'] = $this->handleImageUpload($this->newItem['image']);
             $this->newItem['team_id'] = auth()->user()->team_id;
+
             $item = Item::create($this->newItem);
 
-            // Log the creation transaction
             $this->logTransaction($item, 'created', $item->quantity);
+
             $analyticsService = new AnalyticsService();
             $analyticsService->updateAllAnalytics($item, $item->quantity, 'created');
         }
 
-        // Refresh items list and close modal
         $this->fetchItems();
         $this->closeModal();
     }
 
-    /**
-     * Log a transaction for an item.
-     *
-     * @param Item $item
-     * @param string $type
-     * @param int $quantityDifference
-     */
     private function logTransaction($item, $type, $quantityDifference)
     {
         Transaction::create([
             'item_id' => $item->id,
-            'team_id' => auth()->user()->team_id,
+            'user_id' => Auth::user()->id,
+            'team_id' => session('current_team_id'),
             'item_name' => $item->name,
             'type' => $type,
             'quantity' => $quantityDifference,
@@ -167,50 +154,33 @@ class Adjust extends Component
 
     public function deleteItem($itemId)
     {
-        $teamId = auth()->user()->team_id;
-        $item = Item::find($itemId);
+        try {
+            $item = Item::findOrFail($itemId);
 
-        if ($item) {
-            // If item has an image, delete it from storage
+            if (!auth()->user()->teams->contains('id', $item->team_id)) {
+                abort(403, 'Unauthorized');
+            }
+
             if ($item->image && Storage::disk('public')->exists($item->image)) {
                 Storage::disk('public')->delete($item->image);
             }
 
-            Transaction::create([
-                'item_id' => $item->id,
-                'team_id' => $teamId,
-                'item_name' => $item->name,
-                'type' => 'deleted',
-                'quantity' => $item->quantity,
-                'unit_price' => $item->cost,
-                'total_price' => $item->cost * $item->quantity,
-                'date' => now(),
-            ]);
+            $this->logTransaction($item, 'deleted', $item->quantity);
 
             Analytics::where('item_id', $itemId)->delete();
             Summary::where('item_id', $itemId)->delete();
-            // Delete the item
             $item->delete();
-            $this->fetchItems();
-        }
-    }
 
-    private function resetNewItem()
-    {
-        $this->newItem = [
-            'sku' => '',
-            'name' => '',
-            'cost' => '',
-            'price' => '',
-            'type' => '',
-            'brand' => '',
-            'image' => null,
-            'quantity' => 0,
-        ];
+            $this->fetchItems();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Unable to delete the item: ' . $e->getMessage());
+        }
     }
 
     public function render()
     {
-        return view('livewire.adjust');
+        return view('livewire.adjust', [
+            'items' => $this->items,
+        ]);
     }
 }
