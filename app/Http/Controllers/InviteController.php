@@ -28,6 +28,9 @@ class InviteController extends Controller
             dd($request->email) // Token valid for 24 hours
         ]);
 
+
+
+
         // Send the invitation email
         Mail::to($request->email)->send(new InviteUserMail($token));
 

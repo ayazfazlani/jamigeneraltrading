@@ -21,6 +21,11 @@ class InviteUser extends Component
             return;
         }
 
+        $invitation = InvitationToken::where('expires_at', '>', now())
+            ->first();
+        if ($invitation) {
+            $invitation->delete();
+        }
         // Generate a unique invitation token
         $token = Str::random(32);
 

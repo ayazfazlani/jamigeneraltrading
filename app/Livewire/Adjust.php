@@ -51,6 +51,9 @@ class Adjust extends Component
             $this->items = Item::all();
         } else {
             $teamId = session('current_team_id');
+            if (!$teamId) {
+                $teamId = Auth::user()->team_id;
+            }
             $this->items = Item::where('team_id', $teamId)->get();
         }
         $this->loading = false;

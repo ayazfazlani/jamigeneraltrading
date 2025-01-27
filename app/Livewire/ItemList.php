@@ -33,8 +33,6 @@ class ItemList extends Component
     public $isModalOpen = false;
     public $selectedItem = null; // To store the selected item details
     public $team_id = null;
-
-
     public $isImportModalOpen = false;
     public $importFile;
 
@@ -78,13 +76,15 @@ class ItemList extends Component
 
             // $teamIds = Auth::user()->teams()->pluck('teams.id'); // Specify the table name
 
-            $teamId = (int) session('current_team_id');
+            $teamId = session('current_team_id');
+
+
             // dump($teamId);
             if (!$teamId) {
                 // Handle the case where no team is active
-                session()->flash('error', 'No active team selected.');
+                // session()->flash('error', 'No active team selected.');
+                $teamId = Auth::user()->team_id;
                 $this->items = [];
-                return;
             }
             $this->items = Item::where('team_id', $teamId)->get();
         }
@@ -115,7 +115,7 @@ class ItemList extends Component
 
         // Create the new item
         $item = Item::create([
-            'team_id' => session('current_team_id'),
+            'team_id' => $teamId ?? Auth::user()->team_id,
             'user_id' => Auth::user()->id,
             'sku' => $this->newItem['sku'],
             'name' => $this->newItem['name'],
@@ -135,7 +135,7 @@ class ItemList extends Component
         // Log the transaction for this item creation
         Transaction::create([
             'item_id' => $item->id,
-            'team_id' => Auth()->user()->team_id,
+            'team_id' => $teamId ?? Auth::user()->team_id,
             'user_id' => Auth::user()->id,
             'item_name' => $item->name,
             'type' => 'created',

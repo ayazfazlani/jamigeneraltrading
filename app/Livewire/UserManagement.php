@@ -33,24 +33,44 @@ class UserManagement extends Component
     public function sendInvitation()
     {
         $this->validate();
+
+        // Check if email already exists
         if (User::where('email', $this->email)->exists()) {
             session()->flash('status', 'Email already registered.');
             return;
         }
 
+        // Expire old invitations for the same email
+        InvitationToken::where('email', $this->email)
+            ->where('expires_at', '>', now())
+            ->delete();
+
+        // Generate a new token
         $token = Str::random(32);
+        $expirationTime = config('invitation.expiration_time', 24); // Fetch configurable expiration time, default to 24 hours
+
+        // Store the invitation
         InvitationToken::create([
             'email' => $this->email,
             'token' => $token,
-            'expires_at' => now()->addHours(24),
+            'expires_at' => now()->addHours($expirationTime),
         ]);
 
-        Mail::to($this->email)->send(new InviteUserMail($token));
+        // Send the invitation email
+        try {
+            Mail::to($this->email)->send(new InviteUserMail($token));
+            session()->flash('status', 'Invitation sent successfully!');
+        } catch (\Exception $e) {
+            // Handle mail sending failure
+            session()->flash('error', 'Failed to send the invitation. Please try again.');
+            return;
+        }
 
-        session()->flash('status', 'Invitation sent successfully!');
-        $this->email = '';
+        // Reset form input
+        $this->reset('email');
         $this->mount();
     }
+
 
     public function assignRole($userId)
     {

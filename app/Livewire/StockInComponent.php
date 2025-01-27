@@ -46,14 +46,17 @@ class StockInComponent extends Component
             // Super admin can see all items
             $this->items = Item::all();
         } else {
-            $teamId = (int) session('current_team_id');
-            // dump($teamId);
+            $teamId = session('current_team_id');
+
             if (!$teamId) {
-                // Handle the case where no team is active
-                session()->flash('error', 'No active team selected.');
-                $this->items = [];
-                return;
+                $teamId = Auth::user()->team_id;
             }
+            // if (!$teamId) {
+            //     // Handle the case where no team is active
+            //     session()->flash('error', 'No active team selected.');
+            //     $this->items = [];
+            //     return;
+            // }
             $this->items = Item::where('team_id', $teamId)->get();
         }
     }

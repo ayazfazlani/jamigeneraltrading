@@ -22,7 +22,10 @@ class Transactions extends Component
     // Initialize component
     public function mount()
     {
-        $this->currentTeamId = (int) session('current_team_id', 0); // Default to 0 if no team ID in session
+        $teamId = $this->currentTeamId = (int) session('current_team_id', 0); // Default to 0 if no team ID in session
+        if (!$teamId) {
+            $this->currentTeamId = Auth::user()->team_id;
+        }
         $this->fetchTransactions();
     }
 

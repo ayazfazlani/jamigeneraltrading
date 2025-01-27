@@ -2,11 +2,12 @@
 
 namespace App\Livewire;
 
-use App\Models\Analytics;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Analytics;
 use App\Exports\ReportsExport;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Summary extends Component
 {
@@ -35,6 +36,10 @@ class Summary extends Component
             } else {
                 // Other roles: Filter by team ID
                 $currentTeamId = session('current_team_id');
+
+                if (!$currentTeamId) {
+                    $currentTeamId = Auth::user()->team_id;
+                }
 
                 if ($currentTeamId) {
                     $query->where('team_id', $currentTeamId);

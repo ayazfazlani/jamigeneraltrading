@@ -34,13 +34,16 @@ class StockOutComponent extends Component
             $this->items = Item::all();
         } else {
             $teamId = (int) session('current_team_id');
-            // dump($teamId);
             if (!$teamId) {
-                // Handle the case where no team is active
-                session()->flash('error', 'No active team selected.');
-                $this->items = [];
-                return;
+                $teamId = Auth::user()->team_id;
             }
+            // dump($teamId);
+            // if (!$teamId) {
+            //     // Handle the case where no team is active
+            //     session()->flash('error', 'No active team selected.');
+            //     $this->items = [];
+            //     return;
+            // }
             $this->items = Item::where('team_id', $teamId)->get();
         }
     }
