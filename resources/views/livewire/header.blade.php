@@ -1,7 +1,7 @@
 <div>
-    <header class="bg-white z-0 shadow-lg px-9 py-5 border-b border-gray-300 flex justify-between items-center">
+    <header class="bg-white  z-0 shadow-lg px-9 py-5 border-b border-gray-300 flex justify-between items-center">
         <!-- Logo -->
-        <div class="flex items-center space-x-3">
+        <div class="flex h-10 w-40 items-center space-x-3">
             <img src="{{ asset('jgt.png') }}" alt="Logo" class="h-11">
         </div>
 

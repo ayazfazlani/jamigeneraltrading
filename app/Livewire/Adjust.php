@@ -47,7 +47,7 @@ class Adjust extends Component
     public function fetchItems()
     {
         $this->loading = true;
-        if (auth()->user()->hasRole('super admin')) {
+        if (Auth::user()->hasRole('super admin')) {
             $this->items = Item::all();
         } else {
             $teamId = session('current_team_id');
@@ -108,6 +108,10 @@ class Adjust extends Component
     public function saveItem()
     {
         $validated = $this->validate($this->getValidationRules());
+        $teamId = session('current_team_id');
+        if (!$teamId) {
+            $teamId = Auth::user()->team_id;
+        }
 
         if ($this->isEditing && $this->currentItem) {
             $item = Item::findOrFail($this->currentItem['id']);
@@ -126,7 +130,7 @@ class Adjust extends Component
             }
         } else {
             $this->newItem['image'] = $this->handleImageUpload($this->newItem['image']);
-            $this->newItem['team_id'] = auth()->user()->team_id;
+            $this->newItem['team_id'] = $teamId;
 
             $item = Item::create($this->newItem);
 
@@ -142,10 +146,14 @@ class Adjust extends Component
 
     private function logTransaction($item, $type, $quantityDifference)
     {
+        $teamId = session('current_team_id');
+        if (!$teamId) {
+            $teamId = Auth::user()->team_id;
+        }
         Transaction::create([
             'item_id' => $item->id,
             'user_id' => Auth::user()->id,
-            'team_id' => session('current_team_id'),
+            'team_id' => $teamId,
             'item_name' => $item->name,
             'type' => $type,
             'quantity' => $quantityDifference,
@@ -157,10 +165,15 @@ class Adjust extends Component
 
     public function deleteItem($itemId)
     {
+        $teamId = session('current_team_id');
+        // dd($teamId);
+        if (!$teamId) {
+            $teamId = Auth::user()->team_id;
+        }
         try {
             $item = Item::findOrFail($itemId);
 
-            if (!auth()->user()->teams->contains('id', $item->team_id)) {
+            if (!Auth::user()->teams->contains('id', $teamId)) {
                 abort(403, 'Unauthorized');
             }
 
