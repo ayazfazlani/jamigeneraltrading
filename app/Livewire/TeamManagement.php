@@ -156,7 +156,8 @@ class TeamManagement extends Component
 
         // Add user to team
         $team->users()->attach($user->id);
-
+        $user->team_id = $team->id;
+        $user->save();
         // If this is the user's first team, set it as current team
         if ($user->current_team_id) {
             $user->current_team_id = $team->id;
@@ -173,6 +174,8 @@ class TeamManagement extends Component
         $user = User::findOrFail($userId);
         $team = Team::findOrFail($teamId);
         $team->users()->detach($user->id);
+        $user->team_id = null;
+        $user->save();
         // Check if user is a viewer (uses many-to-many relationship)
         if ($user->hasRole('viewer')) {
             $team->users()->detach($user->id);
