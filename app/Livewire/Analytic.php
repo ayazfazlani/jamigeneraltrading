@@ -3,10 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Item;
-use App\Models\Analytics;
 use Livewire\Component;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Analytics;
 use App\Exports\AnalyticsExport;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Analytic extends Component
 {
@@ -23,7 +24,7 @@ class Analytic extends Component
         $teamId = $this->team_id = (int) session('current_team_id');
 
         if (!$teamId) {
-            $this->team_id = auth()->user()->team_id;
+            $this->team_id = Auth::user()->team_id;
         }
         $this->fetchData();
     }
@@ -75,7 +76,7 @@ class Analytic extends Component
     public function fetchData()
     {
         // Fetch items based on user role
-        $items = auth()->user()->hasRole('super admin')
+        $items = Auth::user()->hasRole('super admin')
             ? Item::all()
             : Item::where('team_id', $this->team_id)->get();
 
@@ -85,7 +86,7 @@ class Analytic extends Component
         // Build analytics query based on user role
         $query = Analytics::query();
 
-        if (!auth()->user()->hasRole('super admin')) {
+        if (!Auth::user()->hasRole('super admin')) {
             $query->where('team_id', $this->team_id);
         }
 
