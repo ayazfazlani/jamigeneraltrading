@@ -191,6 +191,7 @@ class Adjust extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Unable to delete the item: ' . $e->getMessage());
         }
+        $this->fetchItems();
     }
 
     public function render()
