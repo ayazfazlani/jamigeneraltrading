@@ -72,13 +72,72 @@ class StockOutComponent extends Component
         }
     }
 
+    // public function handleStockOut()
+    // {
+    //     $teamId = session('current_team_id');
+
+    //     if (!$teamId) {
+    //         $teamId = Auth::user()->team_id;
+    //     }
+    //     DB::beginTransaction();
+
+    //     try {
+    //         foreach ($this->selectedItems as $item) {
+    //             $itemModel = Item::find($item['id']);
+    //             if ($itemModel) {
+    //                 // Ensure the stock is available for removal
+    //                 if ($itemModel->quantity >= $item['quantity']) {
+    //                     // Update the item quantity
+    //                     $itemModel->quantity -= $item['quantity'];
+    //                     $itemModel->save();
+
+    //                     // Log the transaction
+    //                     Transaction::create([
+    //                         'item_id' => $itemModel->id,
+    //                         'team_id' => $teamId,
+    //                         'user_id' => Auth::user()->id,
+    //                         'item_name' => $itemModel->name,
+    //                         'type' => 'stock out',
+    //                         'quantity' => $item['quantity'],
+    //                         'unit_price' => $itemModel->cost,
+    //                         'total_price' => $itemModel->cost * $item['quantity'],
+    //                         'date' => now(),
+    //                     ]);
+
+    //                     // Update Analytics after stock-out
+    //                     $analyticsService = new AnalyticsService();
+    //                     $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
+    //                 }
+    //                 DB::commit();
+    //                 session()->flash('message', 'Stock-out completed successfully');
+    //             }
+    //         }
+
+
+    //         $this->loadItems();
+    //         $this->selectedItems = [];  // Clear selected items
+    //         $this->toggleModal();  // Close modal
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         // session()->flash('error', 'Error occurred: ' . $e->getMessage());
+    //         session()->flash('error', 'Select item to stock out!');
+    //     }
+    // }
     public function handleStockOut()
     {
+        $teamId = session('current_team_id') ?: Auth::user()->team_id;
+
+        if (empty($this->selectedItems)) {
+            session()->flash('error', 'Please select at least one item to stock out.');
+            return;
+        }
+
         DB::beginTransaction();
 
         try {
             foreach ($this->selectedItems as $item) {
                 $itemModel = Item::find($item['id']);
+
                 if ($itemModel) {
                     // Ensure the stock is available for removal
                     if ($itemModel->quantity >= $item['quantity']) {
@@ -89,7 +148,7 @@ class StockOutComponent extends Component
                         // Log the transaction
                         Transaction::create([
                             'item_id' => $itemModel->id,
-                            'team_id' => session('current_team_id'),
+                            'team_id' => $teamId,
                             'user_id' => Auth::user()->id,
                             'item_name' => $itemModel->name,
                             'type' => 'stock out',
@@ -102,20 +161,21 @@ class StockOutComponent extends Component
                         // Update Analytics after stock-out
                         $analyticsService = new AnalyticsService();
                         $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
+                    } else {
+                        throw new \Exception("Insufficient stock for item: {$itemModel->name}");
                     }
-                    DB::commit();
-                    session()->flash('message', 'Stock-out completed successfully');
                 }
             }
 
+            DB::commit();
+            session()->flash('message', 'Stock-out completed successfully.');
 
             $this->loadItems();
-            $this->selectedItems = [];  // Clear selected items
-            $this->toggleModal();  // Close modal
+            $this->selectedItems = []; // Clear selected items
+            $this->toggleModal(); // Close modal
         } catch (\Exception $e) {
             DB::rollBack();
-            // session()->flash('error', 'Error occurred: ' . $e->getMessage());
-            session()->flash('error', 'Select item to stock out!');
+            session()->flash('error', 'Error occurred: ' . $e->getMessage());
         }
     }
 

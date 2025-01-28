@@ -88,6 +88,11 @@ class StockInComponent extends Component
 
     public function addItem()
     {
+        $teamId = session('current_team_id');
+
+        if (!$teamId) {
+            $teamId = Auth::user()->team_id;
+        }
         $this->validate([
             'newItem.sku' => 'required|string|unique:items,sku',
             'newItem.name' => 'required|string',
@@ -114,13 +119,13 @@ class StockInComponent extends Component
             'brand' => $this->newItem['brand'],
             'quantity' => $this->newItem['quantity'],
             'image' => $imagePath,
-            'team_id' => session('current_team_id'),
+            'team_id' => $teamId,
         ]);
 
         // Create a transaction record for the new item
         Transaction::create([
             'item_id' => $item->id,
-            'team_id' => session('current_team_id'),
+            'team_id' => $teamId,
             'user_id' => Auth::user()->id,
             'item_name' => $item->name,
             'type' => 'created',
@@ -157,7 +162,11 @@ class StockInComponent extends Component
     public function handleStockIn()
     {
         DB::beginTransaction();
+        $teamId = session('current_team_id');
 
+        if (!$teamId) {
+            $teamId = Auth::user()->team_id;
+        }
         try {
             foreach ($this->selectedItems as $item) {
                 $itemModel = Item::find($item['id']);
@@ -169,7 +178,7 @@ class StockInComponent extends Component
                     // Log the transaction
                     Transaction::create([
                         'item_id' => $itemModel->id,
-                        'team_id' => auth()->user()->team_id,
+                        'team_id' => $teamId,
                         'item_name' => $itemModel->name,
                         'type' => 'stock in',
                         'quantity' => $item['quantity'],
