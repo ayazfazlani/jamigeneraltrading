@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Item;
 use Livewire\Component;
-use App\Models\StockOut;
 use App\Models\Transaction;
 use App\Services\AnalyticsService;
 use Illuminate\Support\Facades\DB;
@@ -13,39 +12,62 @@ use Illuminate\Support\Facades\Auth;
 class StockOutComponent extends Component
 {
     public $items = [];
+    public $transactions = [];
     public $selectedItems = [];
-    public $isModalOpen = false;
+    public $search = '';
+    public $dateRange = [
+        'start' => '',
+        'end' => ''
+    ];
+
+    protected $listeners = ['refreshComponent' => '$refresh'];
 
     public function mount()
     {
         $this->loadItems();
+        $this->loadTransactions();
     }
 
     public function loadItems()
     {
-        // if (auth()->user()->hasRole('super admin')) {
-        //     $this->items = Item::all();
-        // } else {
-        //     $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-        //     $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
-        // }
-        if (Auth::user()->hasRole('super admin')) {
-            // Super admin can see all items
-            $this->items = Item::all();
-        } else {
-            $teamId = (int) session('current_team_id');
-            if (!$teamId) {
-                $teamId = Auth::user()->team_id;
-            }
-            // dump($teamId);
-            // if (!$teamId) {
-            //     // Handle the case where no team is active
-            //     session()->flash('error', 'No active team selected.');
-            //     $this->items = [];
-            //     return;
-            // }
-            $this->items = Item::where('team_id', $teamId)->get();
-        }
+        $teamId = Auth::user()->getCurrentTeamId();
+
+        $this->items = Item::when(
+            !Auth::user()->hasRole('super admin'),
+            fn($q) => $q->where('team_id', $teamId)
+        )
+            ->when($this->search, function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('sku', 'like', '%' . $this->search . '%');
+            })
+            ->get();
+    }
+
+    public function loadTransactions()
+    {
+        $teamId = Auth::user()->getCurrentTeamId();
+
+        $this->transactions = Transaction::where('type', 'stock out')
+            ->when($teamId, fn($q) => $q->where('team_id', $teamId))
+            ->when(
+                $this->dateRange['start'] && $this->dateRange['end'],
+                fn($q) => $q->whereBetween('created_at', [
+                    $this->dateRange['start'] . ' 00:00:00',
+                    $this->dateRange['end'] . ' 23:59:59'
+                ])
+            )
+            ->latest()
+            ->get();
+    }
+
+    public function updatedSearch()
+    {
+        $this->loadItems();
+    }
+
+    public function updatedDateRange()
+    {
+        $this->loadTransactions();
     }
 
     public function toggleItemSelection($itemId)
@@ -53,8 +75,8 @@ class StockOutComponent extends Component
         $key = array_search($itemId, array_column($this->selectedItems, 'id'));
 
         if ($key === false) {
-            $item = Item::find($itemId)->toArray();
-            $item['quantity'] = 1;  // Default quantity for stock-out
+            $item = Item::findOrFail($itemId)->toArray();
+            $item['quantity'] = 1;
             $this->selectedItems[] = $item;
         } else {
             unset($this->selectedItems[$key]);
@@ -62,121 +84,72 @@ class StockOutComponent extends Component
         }
     }
 
-    public function updateQuantity($itemId, $quantity)
-    {
-        foreach ($this->selectedItems as &$item) {
-            if ($item['id'] == $itemId) {
-                $item['quantity'] = $quantity;
-                break;
-            }
-        }
-    }
-
-    // public function handleStockOut()
-    // {
-    //     $teamId = session('current_team_id');
-
-    //     if (!$teamId) {
-    //         $teamId = Auth::user()->team_id;
-    //     }
-    //     DB::beginTransaction();
-
-    //     try {
-    //         foreach ($this->selectedItems as $item) {
-    //             $itemModel = Item::find($item['id']);
-    //             if ($itemModel) {
-    //                 // Ensure the stock is available for removal
-    //                 if ($itemModel->quantity >= $item['quantity']) {
-    //                     // Update the item quantity
-    //                     $itemModel->quantity -= $item['quantity'];
-    //                     $itemModel->save();
-
-    //                     // Log the transaction
-    //                     Transaction::create([
-    //                         'item_id' => $itemModel->id,
-    //                         'team_id' => $teamId,
-    //                         'user_id' => Auth::user()->id,
-    //                         'item_name' => $itemModel->name,
-    //                         'type' => 'stock out',
-    //                         'quantity' => $item['quantity'],
-    //                         'unit_price' => $itemModel->cost,
-    //                         'total_price' => $itemModel->cost * $item['quantity'],
-    //                         'date' => now(),
-    //                     ]);
-
-    //                     // Update Analytics after stock-out
-    //                     $analyticsService = new AnalyticsService();
-    //                     $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
-    //                 }
-    //                 DB::commit();
-    //                 session()->flash('message', 'Stock-out completed successfully');
-    //             }
-    //         }
-
-
-    //         $this->loadItems();
-    //         $this->selectedItems = [];  // Clear selected items
-    //         $this->toggleModal();  // Close modal
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         // session()->flash('error', 'Error occurred: ' . $e->getMessage());
-    //         session()->flash('error', 'Select item to stock out!');
-    //     }
-    // }
     public function handleStockOut()
     {
-        $teamId = session('current_team_id') ?: Auth::user()->team_id;
+        $this->validate([
+            'selectedItems.*.quantity' => [
+                'required',
+                'integer',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    $index = explode('.', $attribute)[1];
+                    $itemId = $this->selectedItems[$index]['id'];
+                    $item = Item::find($itemId);
 
-        if (empty($this->selectedItems)) {
-            session()->flash('error', 'Please select at least one item to stock out.');
-            return;
-        }
+                    if (!$item) {
+                        $fail("Item not found");
+                        return;
+                    }
+
+                    if ($value > $item->quantity) {
+                        $fail("Quantity for {$item->name} exceeds available stock ({$item->quantity})");
+                    }
+                }
+            ]
+        ]);
 
         DB::beginTransaction();
+        $teamId = Auth::user()->getCurrentTeamId();
 
         try {
             foreach ($this->selectedItems as $item) {
-                $itemModel = Item::find($item['id']);
+                $itemModel = Item::lockForUpdate()->find($item['id']);
 
                 if ($itemModel) {
-                    // Ensure the stock is available for removal
-                    if ($itemModel->quantity >= $item['quantity']) {
-                        // Update the item quantity
-                        $itemModel->quantity -= $item['quantity'];
-                        $itemModel->save();
-
-                        // Log the transaction
-                        Transaction::create([
-                            'item_id' => $itemModel->id,
-                            'team_id' => $teamId,
-                            'user_id' => Auth::user()->id,
-                            'item_name' => $itemModel->name,
-                            'type' => 'stock out',
-                            'quantity' => $item['quantity'],
-                            'unit_price' => $itemModel->cost,
-                            'total_price' => $itemModel->cost * $item['quantity'],
-                            'date' => now(),
-                        ]);
-
-                        // Update Analytics after stock-out
-                        $analyticsService = new AnalyticsService();
-                        $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
-                    } else {
-                        throw new \Exception("Insufficient stock for item: {$itemModel->name}");
+                    if ($itemModel->quantity < $item['quantity']) {
+                        throw new \Exception("Insufficient stock for {$itemModel->name}");
                     }
+
+                    $itemModel->quantity -= $item['quantity'];
+                    $itemModel->save();
+
+                    Transaction::create([
+                        'item_id' => $itemModel->id,
+                        'team_id' => $teamId,
+                        'user_id' => Auth::id(),
+                        'item_name' => $itemModel->name,
+                        'type' => 'stock out',
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $itemModel->cost,
+                        'total_price' => $itemModel->cost * $item['quantity'],
+                        'created_at' => now(),
+                    ]);
+
+                    (new AnalyticsService())->updateAllAnalytics($itemModel, $item['quantity'], 'stock_out');
                 }
             }
 
             DB::commit();
-            session()->flash('message', 'Stock-out completed successfully.');
-
-            $this->loadItems();
-            $this->selectedItems = []; // Clear selected items
-            $this->toggleModal(); // Close modal
+            // $this->dispatch('refreshComponent');
+            session()->flash('message', 'Stock-out completed successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Error occurred: ' . $e->getMessage());
+            session()->flash('error', 'Error: ' . $e->getMessage());
         }
+
+        $this->reset('selectedItems');
+        $this->loadItems();
+        $this->loadTransactions();
     }
 
     public function render()

@@ -16,8 +16,14 @@ class StockInComponent extends Component
     use WithFileUploads;
 
     public $items = [];
+    public $transactions = [];
     public $selectedItems = [];
     public $isModalOpen = false;
+    public $search = '';
+    public $dateRange = [
+        'start' => '',
+        'end' => ''
+    ];
     public $newItem = [
         'sku' => '',
         'name' => '',
@@ -32,33 +38,48 @@ class StockInComponent extends Component
     public function mount()
     {
         $this->loadItems();
+        $this->loadTransactions();
     }
 
     public function loadItems()
     {
-        // if (auth()->user()->hasRole('super admin')) {
-        //     $this->items = Item::all();
-        // } else {
-        //     $this->team_id = $team_id ?? auth()->user()->team_id; // Initialize with the current user's team ID
-        //     $this->items = Item::where('team_id', $this->team_id)->get(); // Filter items by team
-        // }
-        if (Auth::user()->hasRole('super admin')) {
-            // Super admin can see all items
-            $this->items = Item::all();
-        } else {
-            $teamId = session('current_team_id');
+        $teamId = Auth::user()->getCurrentTeamId();
+        $this->items = Item::when(
+            !Auth::user()->hasRole('super admin'),
+            fn($q) => $q->where('team_id', $teamId)
+        )
+            ->when($this->search, function ($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('sku', 'like', '%' . $this->search . '%');
+            })
+            ->get();
+    }
 
-            if (!$teamId) {
-                $teamId = Auth::user()->team_id;
-            }
-            // if (!$teamId) {
-            //     // Handle the case where no team is active
-            //     session()->flash('error', 'No active team selected.');
-            //     $this->items = [];
-            //     return;
-            // }
-            $this->items = Item::where('team_id', $teamId)->get();
-        }
+    public function loadTransactions()
+    {
+        $teamId = Auth::user()->getCurrentTeamId();
+
+        $this->transactions = Transaction::where('type', 'stock in')
+            ->when($teamId, fn($q) => $q->where('team_id', $teamId))
+            ->when(
+                $this->dateRange['start'] && $this->dateRange['end'],
+                fn($q) => $q->whereBetween('date', [
+                    $this->dateRange['start'],
+                    $this->dateRange['end']
+                ])
+            )
+            ->latest()
+            ->get();
+    }
+
+    public function updatedSearch()
+    {
+        $this->loadItems();
+    }
+
+    public function updatedDateRange()
+    {
+        $this->loadTransactions();
     }
 
     public function toggleItemSelection($itemId)
@@ -88,11 +109,6 @@ class StockInComponent extends Component
 
     public function addItem()
     {
-        $teamId = session('current_team_id');
-
-        if (!$teamId) {
-            $teamId = Auth::user()->team_id;
-        }
         $this->validate([
             'newItem.sku' => 'required|string|unique:items,sku',
             'newItem.name' => 'required|string',
@@ -101,84 +117,67 @@ class StockInComponent extends Component
             'newItem.type' => 'required|string',
             'newItem.brand' => 'required|string',
             'newItem.quantity' => 'required|integer|min:0',
-            'newItem.image' => 'nullable|image|max:2048', // Max file size: 2MB
+            'newItem.image' => 'nullable|image|max:2048',
         ]);
 
-        $imagePath = null;
-        if ($this->newItem['image']) {
-            $imagePath = $this->newItem['image']->store('item_images', 'public');
+        $teamId = Auth::user()->getCurrentTeamId();
+        $imagePath = $this->newItem['image'] ? $this->newItem['image']->store('item_images', 'public') : null;
+
+        DB::beginTransaction();
+        try {
+            $item = Item::create([
+                'sku' => $this->newItem['sku'],
+                'name' => $this->newItem['name'],
+                'cost' => $this->newItem['cost'],
+                'price' => $this->newItem['price'],
+                'type' => $this->newItem['type'],
+                'brand' => $this->newItem['brand'],
+                'quantity' => $this->newItem['quantity'],
+                'image' => $imagePath,
+                'team_id' => $teamId,
+            ]);
+
+            Transaction::create([
+                'item_id' => $item->id,
+                'team_id' => $teamId,
+                'user_id' => Auth::id(),
+                'item_name' => $item->name,
+                'type' => 'created',
+                'quantity' => $item->quantity,
+                'unit_price' => $item->cost,
+                'total_price' => $item->cost * $item->quantity,
+                'date' => now(),
+            ]);
+
+            (new AnalyticsService())->updateAllAnalytics($item, $item->quantity, 'stock_in');
+
+            DB::commit();
+            session()->flash('message', 'Item added successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Error adding item: ' . $e->getMessage());
         }
 
-        // Create the new item
-        $item = Item::create([
-            'sku' => $this->newItem['sku'],
-            'name' => $this->newItem['name'],
-            'cost' => $this->newItem['cost'],
-            'price' => $this->newItem['price'],
-            'type' => $this->newItem['type'],
-            'brand' => $this->newItem['brand'],
-            'quantity' => $this->newItem['quantity'],
-            'image' => $imagePath,
-            'team_id' => $teamId,
-        ]);
-
-        // Create a transaction record for the new item
-        Transaction::create([
-            'item_id' => $item->id,
-            'team_id' => $teamId,
-            'user_id' => Auth::user()->id,
-            'item_name' => $item->name,
-            'type' => 'created',
-            'quantity' => $item->quantity,
-            'unit_price' => $item->cost,
-            'total_price' => $item->cost * $item->quantity,
-            'date' => now(),
-        ]);
-
-        // Update Analytics after item creation
-        $analyticsService = new AnalyticsService();
-        $analyticsService->updateAllAnalytics($item, $item->quantity, 'created');
-
-        // Reset the form fields
-        $this->newItem = [
-            'sku' => '',
-            'name' => '',
-            'cost' => '',
-            'price' => '',
-            'type' => '',
-            'brand' => '',
-            'quantity' => 0,
-            'image' => null,
-        ];
-
-        // Reload items and close the modal
+        $this->reset('newItem');
         $this->loadItems();
         $this->isModalOpen = false;
-
-        // Display success message
-        session()->flash('message', 'Item added successfully!');
     }
 
     public function handleStockIn()
     {
         DB::beginTransaction();
-        $teamId = session('current_team_id');
-
-        if (!$teamId) {
-            $teamId = Auth::user()->team_id;
-        }
+        $teamId = Auth::user()->getCurrentTeamId();
         try {
             foreach ($this->selectedItems as $item) {
                 $itemModel = Item::find($item['id']);
                 if ($itemModel) {
-                    // Update the item quantity
                     $itemModel->quantity += $item['quantity'];
                     $itemModel->save();
 
-                    // Log the transaction
                     Transaction::create([
                         'item_id' => $itemModel->id,
                         'team_id' => $teamId,
+                        'user_id' => Auth::id(),
                         'item_name' => $itemModel->name,
                         'type' => 'stock in',
                         'quantity' => $item['quantity'],
@@ -187,23 +186,20 @@ class StockInComponent extends Component
                         'date' => now(),
                     ]);
 
-                    // Update Analytics after stock-in
-                    $analyticsService = new AnalyticsService();
-                    $analyticsService->updateAllAnalytics($itemModel, $item['quantity'], 'stock_in');
+                    (new AnalyticsService())->updateAllAnalytics($itemModel, $item['quantity'], 'stock_in');
                 }
-                DB::commit();
-                session()->flash('message', 'Stock-in completed successfully');
             }
 
-
-            $this->loadItems();
-            $this->selectedItems = [];  // Clear selected items
-            $this->toggleModal();  // Close modal
+            DB::commit();
+            session()->flash('message', 'Stock-in completed successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            // session()->flash('error', 'Error occurred: ' . $e->getMessage());
-            session()->flash('error', 'Select item to stock out!');
+            session()->flash('error', 'Error during stock-in: ' . $e->getMessage());
         }
+
+        $this->reset('selectedItems');
+        $this->loadItems();
+        $this->loadTransactions();
     }
 
     public function render()

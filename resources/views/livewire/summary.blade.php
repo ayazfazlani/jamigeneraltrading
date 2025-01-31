@@ -1,8 +1,9 @@
 <div class="p-6 flex-1 z-0 items-center  bg-white  shadow">
     <div class="flex flex-1 justify-between items-center mb-4">
         <div>
-            <h1 class="text-xl text-gray-500">Reports</h1>
-            <h2 class="text-2xl font-bold text-gray-500">Summary</h2>
+            <h1 class="text-2xl font-semibold">Reports - Summary</h1>
+            {{-- <h1 class="text-xl text-gray-500">Reports</h1>
+            <h2 class="text-2xl font-bold text-gray-500">Summary</h2> --}}
         </div>
         <button class="bg-green-500 text-black px-4 py-2 rounded hover:bg-green-600" wire:click="exportExcel">
             Export Excel
@@ -26,7 +27,7 @@
             wire:model="search"
         />
         <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" wire:click="filterReports">
-            Filter By
+            Apply Filters
         </button>
     </div>
 

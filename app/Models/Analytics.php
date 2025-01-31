@@ -42,7 +42,7 @@ class Analytics extends Model
         static::creating(function ($analytics) {
             if ($analytics->item) {
                 $analytics->team_id = $analytics->item->team_id;
-                $analytics->user_id = $analytics->item->user_id;
+                // $analytics->user_id = $analytics->item->user_id;
             }
         });
     }

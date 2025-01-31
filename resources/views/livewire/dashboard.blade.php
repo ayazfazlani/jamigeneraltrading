@@ -1,6 +1,6 @@
 <div class=" mx-auto p-6 z-0 flex-1 bg-white  shadow">
     <div class="flex justify-between items-center mb-4 text-gray-500">
-        <h1 class="text-2xl font-bold">Reports</h1>
+        <h1 class="text-2xl font-semibold">Reports - Dashboard</h1>
         <p>{{ \Carbon\Carbon::now()->toFormattedDateString() }}</p>
     </div>
     <hr class="my-4" />

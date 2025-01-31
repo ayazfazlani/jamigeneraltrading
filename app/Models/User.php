@@ -91,6 +91,20 @@ class User extends Authenticatable
         return true;
     }
 
+    public function getCurrentTeamId()
+    {
+        // Get team ID from session (for multi-team users)
+        $teamId = (int) session('current_team_id');
+
+        // Validate team membership via pivot table
+        if ($teamId && $this->teams()->where('team_id', $teamId)->exists()) {
+            return $teamId;
+        }
+
+        // Fallback for single-team users (get first team from pivot)
+        return $this->teams()->first()->id ?? null;
+    }
+
     // Get all teams user has access to
     public function accessibleTeams()
     {

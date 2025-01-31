@@ -29,7 +29,6 @@ class TeamManagement extends Component
 
     public function mount()
     {
-        // Ensure only super admin can access
         if (!Auth::user()->hasRole('super admin')) {
             abort(403, 'Unauthorized access');
         }
@@ -37,24 +36,19 @@ class TeamManagement extends Component
         $this->loadData();
     }
 
-
     protected function loadData()
     {
-        // Load all teams with their users and owners
         $this->teams = Team::with(['owner', 'users'])->get();
 
-        // Load users not assigned to any team
-        $this->availableUsers = User::whereNull('team_id')->get();
+        // Get users not in any team using pivot relationship
+        $this->availableUsers = User::whereDoesntHave('teams')->get();
 
-        // Load "viewer" role users who can be assigned to multiple teams
+        // Get viewer role users
         $viewerUsers = User::whereHas('roles', function ($query) {
             $query->where('name', 'viewer');
         })->get();
 
-        // Merge both available users and viewer users
         $this->availableUsers = $this->availableUsers->merge($viewerUsers);
-
-        // Load all available roles
         $this->availableRoles = Role::all();
     }
 
@@ -65,7 +59,7 @@ class TeamManagement extends Component
             'teamDescription' => 'nullable|string|max:255'
         ]);
 
-        $team = Team::create([
+        Team::create([
             'name' => $this->teamName,
             'description' => $this->teamDescription,
             'owner_id' => Auth::id()
@@ -75,68 +69,23 @@ class TeamManagement extends Component
         $this->reset(['teamName', 'teamDescription']);
         $this->loadData();
     }
+
     public function deleteTeam($teamId)
     {
         $team = Team::findOrFail($teamId);
 
-        // Ensure the user is authorized to delete the team
         if ($team->owner_id !== Auth::id() && !Auth::user()->hasRole('super admin')) {
             session()->flash('status', 'Unauthorized to delete this team.');
             return;
         }
 
-        // Unassign users from the team
-        User::where('team_id', $team->id)->update(['team_id' => null]);
-
-        // Delete the team
+        // Detach all users from team through pivot
+        $team->users()->detach();
         $team->delete();
 
         session()->flash('status', "Team {$team->name} deleted successfully!");
         $this->loadData();
     }
-    // public function addUserToTeam()
-    // {
-    //     $this->validate([
-    //         'selectedUsers' => 'required|exists:users,id',
-    //         'selectedTeam' => 'required|exists:teams,id'
-    //     ]);
-
-    //     // Find user and team
-    //     $user = User::findOrFail($this->selectedUsers);
-    //     $team = Team::findOrFail($this->selectedTeam);
-
-    //     // Assign user to team
-    //     $user->team_id = $team->id;
-    //     $user->save();
-
-    //     session()->flash('status', "User {$user->name} added to team {$team->name}");
-
-    //     // Reset and reload
-    //     $this->reset(['selectedUsers', 'selectedTeam']);
-    //     $this->loadData();
-    // }
-    // app/Livewire/TeamManagement.php
-
-    // public function addUserToTeam()
-    // {
-    //     $this->validate([
-    //         'selectedUsers' => 'required|exists:users,id', // Ensure a single user is selected
-    //         'selectedTeam' => 'required|exists:teams,id'
-    //     ]);
-
-    //     // Find user and team
-    //     $user = User::findOrFail($this->selectedUsers);
-    //     $team = Team::findOrFail($this->selectedTeam);
-
-    //     // Attach user to team (this allows the user to be in multiple teams)
-    //     $team->users()->attach($user->id);
-
-    //     session()->flash('status', "User {$user->name} added to team {$team->name}");
-
-    //     // Reset and reload
-    //     // $this->reset(['selectedUsers', 'selectedTeam']);
-    //     $this->loadData();
-    // }
 
     public function addUserToTeam()
     {
@@ -148,21 +97,17 @@ class TeamManagement extends Component
         $user = User::findOrFail($this->selectedUsers);
         $team = Team::findOrFail($this->selectedTeam);
 
-        // Check if the user is already a member of the team
-        if ($team->users()->where('users.id', $user->id)->exists()) {
+        if ($team->users()->where('user_id', $user->id)->exists()) {
             session()->flash('status', 'User is already a member of this team.');
             return;
         }
 
-        // Add user to team
+        // Attach user to team through pivot
         $team->users()->attach($user->id);
-        $user->team_id = $team->id;
-        $user->save();
-        // If this is the user's first team, set it as current team
-        if ($user->current_team_id) {
-            $user->current_team_id = $team->id;
-            $user->team_id = $team->id;
-            $user->save();
+
+        // Set current team if not set
+        if (!$user->current_team_id) {
+            $user->update(['current_team_id' => $team->id]);
         }
 
         session()->flash('status', "User {$user->name} added to team {$team->name}");
@@ -173,16 +118,14 @@ class TeamManagement extends Component
     {
         $user = User::findOrFail($userId);
         $team = Team::findOrFail($teamId);
-        $team->users()->detach($user->id);
-        $user->team_id = null;
-        $user->save();
-        // Check if user is a viewer (uses many-to-many relationship)
-        if ($user->hasRole('viewer')) {
-            $team->users()->detach($user->id);
-        } else {
-            // For regular users, just set team_id to null
-            $user->team_id = null;
-            $user->save();
+
+        // Detach user from team through pivot
+        $team->users()->detach($userId);
+
+        // Reset current team if it was this team
+        if ($user->current_team_id == $teamId) {
+            $newTeam = $user->teams()->first();
+            $user->update(['current_team_id' => $newTeam->id ?? null]);
         }
 
         session()->flash('status', "User {$user->name} removed from team {$team->name}");
@@ -197,13 +140,9 @@ class TeamManagement extends Component
         ]);
 
         $user = User::findOrFail($this->selectedUser);
-
-        // Sync user roles
         $user->syncRoles([$this->selectedRole]);
 
         session()->flash('status', "Role changed to {$this->selectedRole} for {$user->name}");
-
-        // Reset and reload
         $this->reset(['selectedUser', 'selectedRole']);
         $this->loadData();
     }

@@ -1,8 +1,37 @@
 <div>
     <div class="p-6 z-0 flex-1 bg-white overflow-y-auto h-screen">
+        <!-- Notifications -->
+        @if(session()->has('message'))
+        <div class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg" role="alert">
+            {{ session('message') }}
+        </div>
+        @elseif(session()->has('error'))
+        <div class="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg" role="alert">
+            {{ session('error') }}
+        </div>
+        @endif
+
         <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">Adjust Stock</h1>
-            <button class="bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 px-4 rounded">Reset</button>
+            <h1 class="text-2xl font-semibold">Adjust Stock</h1>
+            <button wire:click="fetchItems" class="bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 px-4 rounded">
+                Refresh
+            </button>
+        </div>
+
+        <!-- Search and Date Filter -->
+        <div class="flex items-center gap-4 my-6">
+            <div class="flex-1">
+                <input type="text" wire:model.live.debounce.300ms="search" 
+                    placeholder="Search items by name or SKU..."
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="date" wire:model.live="dateRange.start" 
+                    class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                <span class="text-gray-500">to</span>
+                <input type="date" wire:model.live="dateRange.end" 
+                    class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            </div>
         </div>
 
         <hr class="my-4" />
@@ -34,29 +63,17 @@
                                 </div>
                                 <span class="text-gray-900">Quantity: {{ $item->quantity }}</span>
                                 <div class="flex gap-2">
-                                    {{-- @canNot('viewer')
-                                    <button wire:click="openModal({{ $item->id }})" class="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600">
-                                        <i class="fa fa-edit"> </i>
-                                    </button>
-                                    <button wire:click.prevent="deleteItem({{ $item->id }})" class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">
-                                        <i class="fa fa-trash-alt"> </i>
-                                    </button>
-                                    @endcanNot --}}
-
                                     @role('viewer')
-    <!-- Viewer users won't see the buttons -->
-                                        @else
-                                            <button wire:click="openModal({{ $item->id }})" class="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600">
-                                                <i class="fa fa-edit"></i>
-                                                <span>Edit</span>
-                                            </button>
-                                            <button wire:click.prevent="deleteItem({{ $item->id }})" class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">
-                                                <i class="fa fa-trash-alt"></i>
-                                                <span>Delete</span>
-                                            </button>
+                                    @else
+                                        <button wire:click="openModal({{ $item->id }})" class="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600">
+                                            <i class="fa fa-edit"></i>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button wire:click.prevent="deleteItem({{ $item->id }})" class="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600">
+                                            <i class="fa fa-trash-alt"></i>
+                                            <span>Delete</span>
+                                        </button>
                                     @endrole
-
-                                    
                                 </div>
                             </li>
                         @endforeach
@@ -75,32 +92,31 @@
         </div>
 
         @if($isModalOpen)
-    <div class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto flex items-center justify-center z-50">
-        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
-            <h3 class="text-xl font-semibold mb-4 text-gray-700">
-                {{ $isEditing ? 'Edit Item' : 'Add New Item' }}
-            </h3>
-            <div class="space-y-4">
-                <input type="text" wire:model="newItem.sku" placeholder="SKU" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="text" wire:model="newItem.name" placeholder="Name" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="number" wire:model="newItem.cost" placeholder="Cost" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="number" wire:model="newItem.price" placeholder="Price" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="text" wire:model="newItem.type" placeholder="Type" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="text" wire:model="newItem.brand" placeholder="Brand" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="number" wire:model="newItem.quantity" placeholder="Quantity" class="w-full p-2 border border-gray-300 rounded-md">
-                <input type="file" wire:model="newItem.image" class="w-full p-2 border border-gray-300 rounded-md">
-                <div class="flex justify-end mt-4">
-                    <button wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md mr-2">
-                        Close
-                    </button>
-                    <button wire:click="saveItem" class="px-4 py-2 bg-green-500 text-white rounded-md">
-                        {{ $isEditing ? 'Save Changes' : 'Add Item' }}
-                    </button>
+        <div class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto flex items-center justify-center z-50">
+            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4 text-gray-700">
+                    {{ $isEditing ? 'Edit Item' : 'Add New Item' }}
+                </h3>
+                <div class="space-y-4">
+                    <input type="text" wire:model="newItem.sku" placeholder="SKU" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="text" wire:model="newItem.name" placeholder="Name" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="number" wire:model="newItem.cost" placeholder="Cost" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="number" wire:model="newItem.price" placeholder="Price" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="text" wire:model="newItem.type" placeholder="Type" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="text" wire:model="newItem.brand" placeholder="Brand" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="number" wire:model="newItem.quantity" placeholder="Quantity" class="w-full p-2 border border-gray-300 rounded-md">
+                    <input type="file" wire:model="newItem.image" class="w-full p-2 border border-gray-300 rounded-md">
+                    <div class="flex justify-end mt-4">
+                        <button wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md mr-2">
+                            Close
+                        </button>
+                        <button wire:click="saveItem" class="px-4 py-2 bg-green-500 text-white rounded-md">
+                            {{ $isEditing ? 'Save Changes' : 'Add Item' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-@endif
-
+        @endif
     </div>
 </div>

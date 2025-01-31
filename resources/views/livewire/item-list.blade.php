@@ -1,141 +1,200 @@
 <div>
-    <div class="p-8 flex-1 bg-white">
-        <!-- Heading and Add Button -->
+    <div class="p-6 flex-1 bg-white min-h-screen overflow-y-auto">
+        <!-- Header Section -->
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold text-gray-800">Item List</h1>
-
-
-           @role('viewer')
-           @else
-        <div class="flex gap-1">
-            <button
-            wire:click="toggleImportModal"
-            class="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-500 transition"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Import Items</span>
-        </button>
+            <h1 class="text-2xl font-semibold">Item Management</h1>
+            <div class="flex gap-2">
+                @role('viewer')
+                @else
+                <button
+                    wire:click="toggleImportModal"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Import</span>
+                </button>
                 <button
                     wire:click="toggleModal"
-                    class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-500 transition"
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     <span>Add Item</span>
                 </button>
+                @endrole
+            </div>
         </div>
-            @endrole
-        </div>
-    
-        <!-- Search Bar and In-Stock Button -->
-        <div class="flex items-center space-x-4 mb-4">
-            <input
-                type="text"
-                placeholder="Search for an item..."
-                class="w-half pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
+
+        <!-- Search and Filters -->
+        <div class="flex items-center gap-4 mb-6">
+            <div class="relative flex-1">
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search items..."
+                    class="w-full p-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
             <button
                 wire:click="$toggle('inStockOnly')"
-                class="px-4 py-2 border rounded-md {{ $inStockOnly ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border-gray-300' }}"
+                class="px-4 py-2 border rounded-md transition-colors {{ $inStockOnly ? 'bg-green-500 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
             >
-                <span>In Stock</span>
+                In Stock Only
             </button>
         </div>
-    
-        <!-- Left and Right Sections for Product List and Product Details -->
-        <div class="flex space-x-6">
-            <!-- Left Section: Product List -->
-            <div class="w-2/4">
-                <div class="space-y-4 max-h-[400px] overflow-y-auto">
-                    @foreach($items as $item)
-                        <div
-                            class="p-4 bg-white shadow rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50"
-                            wire:click="selectItem({{ $item->id }})"
-                        >
-                            <div class="flex items-center space-x-4">
-                                @if($item->image)
-                                    <img src="{{ asset('storage/'.$item->image) }}" alt="{{ $item->name }}" class="w-16 h-16 object-cover rounded-md">
-                                @endif
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ $item->name }}</h3>
-                                    <p class="text-sm text-gray-600">SKU: {{ $item->sku }}</p>
-                                    <p class="text-sm text-gray-600">Brand: {{ $item->brand }}</p>
-                                    <p class="text-sm text-gray-600">Quantity: {{ $item->quantity }}</p>
+
+        <!-- Main Content -->
+        <div class="flex gap-6">
+            <!-- Items List -->
+            <div class="w-1/2 pr-3">
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div class="p-4 border-b border-gray-200 bg-gray-50">
+                        <h2 class="text-lg font-semibold text-gray-700">Item List</h2>
+                    </div>
+                    <div class="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+                        @forelse($items as $item)
+                            <div
+                                wire:key="item-{{ $item->id }}"
+                                wire:click="selectItem({{ $item->id }})"
+                                class="p-4 bg-white rounded-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors {{ $selectedItem && $selectedItem->id === $item->id ? 'ring-2 ring-blue-400' : '' }}"
+                            >
+                                <div class="flex items-center gap-4">
+                                    @if($item->image)
+                                    <img 
+                                        src="{{ asset('storage/'.$item->image) }}" 
+                                        alt="{{ $item->name }}"
+                                        class="w-16 h-16 object-cover rounded-md"
+                                    >
+                                    @endif
+                                    <div class="flex-1">
+                                        <h3 class="font-medium text-gray-800">{{ $item->name }}</h3>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            <p>SKU: {{ $item->sku }}</p>
+                                            <p>Brand: {{ $item->brand }}</p>
+                                            <p class="mt-1">
+                                                Quantity: 
+                                                <span class="font-medium {{ $item->quantity > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                    {{ $item->quantity }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-    
-            <!-- Right Section: Product Details -->
-            <div class="w-2/4">
-                @if($selectedItem)
-                    <div class="bg-white p-6 shadow rounded-md">
-                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">{{ $selectedItem->name }}</h2>
-                        <div class="flex space-x-6">
-                            @if($selectedItem->image)
-                                <img src="{{ asset('storage/'.$selectedItem->image) }}" alt="{{ $selectedItem->name }}" class="w-40 h-40 object-cover rounded-md">
-                            @endif
-                            <div>
-                                <p class="text-sm text-gray-600">SKU: {{ $selectedItem->sku }}</p>
-                                <p class="text-sm text-gray-600">Brand: {{ $selectedItem->brand }}</p>
-                                <p class="text-sm text-gray-600">Type: {{ $selectedItem->type }}</p>
-                                <p class="text-sm text-gray-600">Cost: ${{ $selectedItem->cost }}</p>
-                                <p class="text-sm text-gray-600">Price: ${{ $selectedItem->price }}</p>
-                                <p class="text-sm text-gray-600">Quantity: {{ $selectedItem->quantity }}</p>
+                        @empty
+                            <div class="p-4 text-center text-gray-500">
+                                No items found matching your criteria
                             </div>
-                        </div>
+                        @endforelse
                     </div>
-                @else
-                    <div class="flex justify-center items-center h-full">
-                        <p class="text-gray-600">Select a product to see the details.</p>
-                    </div>
-                @endif
+                </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Modal Form for Adding Item -->
-    @if($isModalOpen)
-        <div class="fixed inset-0 bg-gray-700 bg-opacity-50 overflow-y-auto flex items-center justify-center z-50">
-            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold mb-4 text-gray-600">Add New Item</h3>
-                <div class="space-y-4">
-                    <input type="text" wire:model="newItem.sku" placeholder="SKU" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="text" wire:model="newItem.name" placeholder="Name" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="number" wire:model="newItem.cost" placeholder="Cost" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="number" wire:model="newItem.price" placeholder="Price" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="text" wire:model="newItem.type" placeholder="Type" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="text" wire:model="newItem.brand" placeholder="Brand" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="number" wire:model="newItem.quantity" placeholder="Quantity" class="w-full p-2 border border-gray-300 rounded-md">
-                    <input type="file" wire:model="image" class="w-full p-2 border border-gray-300 rounded-md">
-                    <div class="flex justify-end mt-4">
-                        <button wire:click="addItem" class="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
-                        <button wire:click="toggleModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md ml-2">Cancel</button>
+
+            <!-- Item Details -->
+            <div class="w-1/2 pl-3">
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm h-full">
+                    <div class="p-4 border-b border-gray-200 bg-gray-50">
+                        <h2 class="text-lg font-semibold text-gray-700">Item Details</h2>
+                    </div>
+                    <div class="p-4 h-[70vh] overflow-y-auto">
+                        @if($selectedItem)
+                            <div class="space-y-4">
+                                @if($selectedItem->image)
+                                <img 
+                                    src="{{ asset('storage/'.$selectedItem->image) }}" 
+                                    alt="{{ $selectedItem->name }}"
+                                    class="w-full h-48 object-cover rounded-md mb-4"
+                                >
+                                @endif
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Name</label>
+                                        <p class="text-gray-900">{{ $selectedItem->name }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">SKU</label>
+                                        <p class="text-gray-900">{{ $selectedItem->sku }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Brand</label>
+                                        <p class="text-gray-900">{{ $selectedItem->brand }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Type</label>
+                                        <p class="text-gray-900">{{ $selectedItem->type }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Cost</label>
+                                        <p class="text-gray-900">${{ number_format($selectedItem->cost, 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Price</label>
+                                        <p class="text-gray-900">${{ number_format($selectedItem->price, 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
+                                        <p class="text-gray-900 {{ $selectedItem->quantity > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ $selectedItem->quantity }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="h-full flex items-center justify-center text-gray-500">
+                                Select an item to view details
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
-    @endif
 
-
-    @if($isImportModalOpen)
-    <div class="fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
-            <h3 class="text-xl font-semibold mb-4 text-gray-600">Import Items</h3>
-            <div class="space-y-4">
-                <input type="file" wire:model="importFile" class="w-full p-2 border border-gray-300 rounded-md">
-                <div class="flex justify-end mt-4">
-                    <button wire:click="importItems" class="px-4 py-2 bg-green-600 text-white rounded-md">Upload</button>
-                    <button wire:click="toggleImportModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md ml-2">Cancel</button>
+        <!-- Modals -->
+        @if($isModalOpen)
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white w-full max-w-md rounded-lg shadow-xl">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-semibold">Add New Item</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <input type="text" wire:model="newItem.sku" placeholder="SKU" class="w-full p-2 border rounded-md">
+                        <input type="text" wire:model="newItem.name" placeholder="Name" class="w-full p-2 border rounded-md">
+                        <input type="number" wire:model="newItem.cost" placeholder="Cost" class="w-full p-2 border rounded-md">
+                        <input type="number" wire:model="newItem.price" placeholder="Price" class="w-full p-2 border rounded-md">
+                        <input type="text" wire:model="newItem.type" placeholder="Type" class="w-full p-2 border rounded-md">
+                        <input type="text" wire:model="newItem.brand" placeholder="Brand" class="w-full p-2 border rounded-md">
+                        <input type="number" wire:model="newItem.quantity" placeholder="Quantity" class="w-full p-2 border rounded-md">
+                        <input type="file" wire:model="image" class="w-full p-2 border rounded-md">
+                    </div>
+                    <div class="p-6 border-t border-gray-200 flex justify-end gap-2">
+                        <button wire:click="toggleModal" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Cancel</button>
+                        <button wire:click="addItem" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Save Item</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-@endif
+        @endif
 
+        @if($isImportModalOpen)
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white w-full max-w-md rounded-lg shadow-xl">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-semibold">Import Items</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <input type="file" wire:model="importFile" class="w-full p-2 border rounded-md">
+                    </div>
+                    <div class="p-6 border-t border-gray-200 flex justify-end gap-2">
+                        <button wire:click="toggleImportModal" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Cancel</button>
+                        <button wire:click="importItems" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500">Import</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
 </div>

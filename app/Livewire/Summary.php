@@ -35,11 +35,7 @@ class Summary extends Component
                 // Super admin sees all reports (no additional filters applied)
             } else {
                 // Other roles: Filter by team ID
-                $currentTeamId = session('current_team_id');
-
-                if (!$currentTeamId) {
-                    $currentTeamId = Auth::user()->team_id;
-                }
+                $currentTeamId = $teamId = Auth::user()->getCurrentTeamId();
 
                 if ($currentTeamId) {
                     $query->where('team_id', $currentTeamId);

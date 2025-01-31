@@ -16,6 +16,8 @@ class Adjust extends Component
 {
     use WithFileUploads;
 
+    use WithFileUploads;
+
     public $items = [];
     public $selectedItems = [];
     public $isModalOpen = false;
@@ -23,6 +25,11 @@ class Adjust extends Component
     public $currentItem = null;
     public $newItem = [];
     public $loading = false;
+    public $search = '';
+    public $dateRange = [
+        'start' => '',
+        'end' => ''
+    ];
 
     public function mount()
     {
@@ -46,18 +53,43 @@ class Adjust extends Component
 
     public function fetchItems()
     {
+        $teamId = Auth::user()->getCurrentTeamId();
         $this->loading = true;
-        if (Auth::user()->hasRole('super admin')) {
-            $this->items = Item::all();
-        } else {
-            $teamId = session('current_team_id');
-            if (!$teamId) {
-                $teamId = Auth::user()->team_id;
-            }
-            $this->items = Item::where('team_id', $teamId)->get();
+
+        $query = Item::query();
+
+        if (!Auth::user()->hasRole('super admin')) {
+            $query->where('team_id', $teamId);
         }
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('sku', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        if ($this->dateRange['start'] && $this->dateRange['end']) {
+            $query->whereBetween('created_at', [
+                $this->dateRange['start'],
+                $this->dateRange['end']
+            ]);
+        }
+
+        $this->items = $query->get();
         $this->loading = false;
     }
+
+    public function updatedSearch()
+    {
+        $this->fetchItems();
+    }
+
+    public function updatedDateRange()
+    {
+        $this->fetchItems();
+    }
+
 
     public function openModal($itemId = null)
     {
@@ -108,11 +140,7 @@ class Adjust extends Component
     public function saveItem()
     {
         $validated = $this->validate($this->getValidationRules());
-        $teamId = session('current_team_id');
-        if (!$teamId) {
-            $teamId = Auth::user()->team_id;
-        }
-
+        $teamId = Auth::user()->getCurrentTeamId();
         if ($this->isEditing && $this->currentItem) {
             $item = Item::findOrFail($this->currentItem['id']);
             $originalQuantity = $item->quantity;
@@ -127,6 +155,8 @@ class Adjust extends Component
 
             if ($quantityDifference != 0) {
                 $this->logTransaction($item, 'adjusted', $quantityDifference);
+                $analyticsService = new AnalyticsService();
+                $analyticsService->updateAllAnalytics($item, $item->quantity, 'update');
             }
         } else {
             $this->newItem['image'] = $this->handleImageUpload($this->newItem['image']);
@@ -146,10 +176,7 @@ class Adjust extends Component
 
     private function logTransaction($item, $type, $quantityDifference)
     {
-        $teamId = session('current_team_id');
-        if (!$teamId) {
-            $teamId = Auth::user()->team_id;
-        }
+        $teamId = Auth::user()->getCurrentTeamId();
         Transaction::create([
             'item_id' => $item->id,
             'user_id' => Auth::user()->id,
@@ -165,11 +192,7 @@ class Adjust extends Component
 
     public function deleteItem($itemId)
     {
-        $teamId = session('current_team_id');
-        // dd($teamId);
-        if (!$teamId) {
-            $teamId = Auth::user()->team_id;
-        }
+        $teamId = Auth::user()->getCurrentTeamId();
         try {
             $item = Item::findOrFail($itemId);
 

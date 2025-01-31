@@ -19,35 +19,41 @@ class AnalyticsService
   public function updateAllAnalytics(Item $item, $quantity, $operation)
   {
     // Find or create the analytics record for the item
-    $analytics = Analytics::where('item_id', $item->id)->first();
-
-    if (!$analytics) {
-      $analytics = new Analytics();
-      $analytics->item_id = $item->id;
-      $analytics->item_name = $item->name;
-    }
+    $analytics = Analytics::firstOrCreate(
+      ['item_id' => $item->id],
+      [
+        'item_name' => $item->name,
+        'current_quantity' => 0,
+        'team_id' => Auth::user()->getCurrentTeamId(),
+        'inventory_assets' => 0,
+        'average_quantity' => 0,
+        'turnover_ratio' => 0,
+        'stock_out_days_estimate' => 0,
+        'total_stock_out' => 0,
+        'total_stock_in' => 0,
+        'avg_daily_stock_in' => 0,
+        'avg_daily_stock_out' => 0
+      ]
+    );
 
     // Update analytics based on the operation type
     switch ($operation) {
       case 'created':
         // When an item is created, set initial values
         $analytics->current_quantity = $quantity;
-        $analytics->team_id = auth()->user()->team_id;
-        $analytics->user_id = Auth::user()->id;
-        $analytics->inventory_assets = $item->cost * $quantity; // Set the inventory value
-        $analytics->average_quantity = $quantity;
-        $analytics->turnover_ratio = 0;
-        $analytics->stock_out_days_estimate = 0;
-        $analytics->total_stock_out = 0;
-        $analytics->total_stock_in = 0;
-        $analytics->avg_daily_stock_in = 0;
-        $analytics->avg_daily_stock_out = 0;
+        $analytics->inventory_assets = $item->cost * $quantity;
         break;
 
       case 'stock_in':
-        // When stock-in operation happens, increase quantity and other metrics
         $analytics->current_quantity += $quantity;
         $analytics->total_stock_in += $quantity;
+
+        // Calculate days since first stock-in
+        $firstStockInDate = $analytics->created_at ?? now();
+        $daysSinceFirstStockIn = max($firstStockInDate->diffInDays(now()), 1);
+
+        // Update avg daily stock-in
+        $analytics->avg_daily_stock_in = $analytics->total_stock_in / $daysSinceFirstStockIn;
         break;
 
       case 'stock_out':
@@ -56,16 +62,20 @@ class AnalyticsService
           $analytics->current_quantity -= $quantity;
           $analytics->total_stock_out += $quantity;
         } else {
-          // Handle case when there's not enough stock to remove
           throw new \Exception("Not enough stock to perform stock-out.");
         }
         break;
+
+      case 'update':
+        // When an item is updated, update the current quantity
+        $analytics->current_quantity = $item->quantity;
+        break;
     }
 
-    // Calculate and update the turnover ratio, average daily stock-in/out, and stock-out days estimate
+    // Update calculated analytics metrics
     $this->updateAnalyticsMetrics($analytics, $item, $quantity, $operation);
 
-    // Save the analytics record after updates
+    // Save changes
     $analytics->save();
   }
 
@@ -80,14 +90,22 @@ class AnalyticsService
    */
   private function updateAnalyticsMetrics(Analytics $analytics, Item $item, $quantity, $operation)
   {
-    // Calculate average daily stock-in
-    if ($analytics->total_stock_in_quantity > 0) {
-      $analytics->avg_daily_stock_in = $analytics->total_stock_in_quantity / 30; // Assuming 30 days
+    // Calculate days since first stock-in
+    $firstStockInDate = $analytics->created_at ?? now();
+    $daysSinceFirstStockIn = max($firstStockInDate->diffInDays(now()), 1);
+
+    // Calculate days since first stock-out
+    $firstStockOutDate = $analytics->updated_at ?? now(); // Assuming last update is stock-out date
+    $daysSinceFirstStockOut = max($firstStockOutDate->diffInDays(now()), 1);
+
+    // Avg daily stock-in
+    if ($analytics->total_stock_in > 0) {
+      $analytics->avg_daily_stock_in = $analytics->total_stock_in / $daysSinceFirstStockIn;
     }
 
-    // Calculate average daily stock-out
+    // Avg daily stock-out
     if ($analytics->total_stock_out > 0) {
-      $analytics->avg_daily_stock_out = $analytics->total_stock_out / 30; // Assuming 30 days
+      $analytics->avg_daily_stock_out = $analytics->total_stock_out / $daysSinceFirstStockOut;
     }
 
     // Calculate turnover ratio (example logic)

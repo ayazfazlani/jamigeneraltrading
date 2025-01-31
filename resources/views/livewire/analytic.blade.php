@@ -1,6 +1,6 @@
 <div class="flex flex-1 z-0 flex-col min-h-screen max-w-screen overflow-x-auto bg text-gray-700">
     <div class="p-6 flex justify-between bg-white ">
-        <h2 class="text-2xl font-semibold">Reports - Analytics</h2>
+        <h1 class="text-2xl font-semibold">Reports - Analytics</h1>
        
             <button wire:click="exportExcel" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">Export to 
     </div>
@@ -65,6 +65,7 @@
                                 <th class="p-3 min-w-[200px]">Average Quantity</th>
                                 <th class="p-3 min-w-[200px]">Turnover Ratio</th>
                                 <th class="p-3 min-w-[200px]">Stock Out Days</th>
+                                <th class="p-3 min-w-[200px]">Total Stock in</th>
                                 <th class="p-3 min-w-[200px]">Total Stock Out</th>
                                 <th class="p-3 min-w-[200px]">Avg Daily Stock In</th>
                                 <th class="p-3 min-w-[200px]">Avg Daily Stock Out</th>
@@ -79,6 +80,7 @@
                                     <td class="p-3">{{ $data['average_quantity'] }}</td>
                                     <td class="p-3">{{ $data['turnover_ratio'] }}</td>
                                     <td class="p-3">{{ $data['stock_out_days_estimate'] }}</td>
+                                    <td class="p-3">{{ $data['total_stock_in'] }}</td>
                                     <td class="p-3">{{ $data['total_stock_out'] }}</td>
                                     <td class="p-3">{{ $data['avg_daily_stock_in'] }}</td>
                                     <td class="p-3">{{ $data['avg_daily_stock_out'] }}</td>
@@ -91,6 +93,7 @@
                                 <td class="p-3">{{ $this->calculate('average_quantity') }}</td>
                                 <td class="p-3">{{ $this->calculate('turnover_ratio') }}</td>
                                 <td class="p-3">{{ $this->calculate('stock_out_days_estimate') }}</td>
+                                <td class="p-3">{{ $this->calculate('total_stock_in') }}</td>
                                 <td class="p-3">{{ $this->calculate('total_stock_out') }}</td>
                                 <td class="p-3">{{ $this->calculate('avg_daily_stock_in') }}</td>
                                 <td class="p-3">{{ $this->calculate('avg_daily_stock_out') }}</td>
