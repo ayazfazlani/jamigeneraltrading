@@ -3,7 +3,7 @@
     <select
         wire:model="currentTeamId"
         wire:change="switchTeam"
-        class="block w-40 text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+        class="block w-14 md:w-40 text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
     >
         @foreach($teams as $team)
             <option value="{{ $team->id }}" {{ $team->id == $currentTeamId ? 'selected' : '' }}>

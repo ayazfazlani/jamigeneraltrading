@@ -42,8 +42,8 @@
 <!-- Add User to Team Section -->
 <div class="mb-8 bg-white rounded-lg shadow-md p-6">
     <h2 class="text-xl font-semibold text-gray-700 mb-4">Add User to Team</h2>
-    <div class="flex space-x-4">
-        <div class="flex-1">
+    <div class="flex-wrap md:flex md:space-x-4">
+        <div class="w-full md:flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
             <select 
                 wire:model="selectedUsers" 
@@ -54,7 +54,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="flex-1">
+        <div class="w-full md:flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Select Team</label>
             <select 
                 wire:model="selectedTeam" 
@@ -65,7 +65,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="flex items-end">
+        <div class="fles items-end mt-6">
             <button 
                 wire:click="addUserToTeam"
                 class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
@@ -78,8 +78,8 @@
     <!-- Change User Role Section -->
     <div class="mb-8 bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">Change User Role</h2>
-        <div class="flex space-x-4">
-            <div class="flex-1">
+        <div class="flex-wrap md:flex md:space-x-4">
+            <div class="w-full md:flex-1">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
                 <select 
                     wire:model="selectedUser" 
@@ -92,7 +92,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex-1">
+            <div class="w-full md:flex-1">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Select Role</label>
                 <select 
                     wire:model="selectedRole" 
@@ -103,7 +103,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-end">
+            <div class="fles items-end mt-6">
                 <button 
                     wire:click="changeUserRole"
                     class="px-6 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
@@ -120,7 +120,7 @@
             @foreach($teams as $team)
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">{{ $team->name }}</h3>
-                    <p class="text-sm text-gray-600 mb-2">Owner: {{ $team->owner->name }}</p>
+                    {{-- <p class="text-sm text-gray-600 mb-2">Owner: {{ $team->owner->name }}</p> --}}
                     <div class="border-t pt-2">
                         <h4 class="text-sm font-semibold text-gray-700 mb-2">Team Members</h4>
                         <ul class="space-y-1">

@@ -1,5 +1,5 @@
 <div>
-    <nav class="sidebar z-10 border-r border-gray-300">
+    <nav class="sidebar max-sm:fixed  md:block z-10 border-r border-gray-300">
         <header>
             <div class="image-text">
                 <span class="image">
@@ -148,5 +148,30 @@ modeSwitch.addEventListener("click", () => {
     }
 });
 
+document.addEventListener("click", function () {
+    const sidebar = document.querySelector(".sidebar");
+    const toggle = document.querySelector(".toggle");
+
+    if (!sidebar || !toggle) return;
+
+    // Load sidebar state from localStorage
+    if (localStorage.getItem("sidebarState") === "closed") {
+        sidebar.classList.add("close");
+    }
+
+    // Toggle sidebar state and save to localStorage
+    toggle.addEventListener("click", () => {
+        sidebar.classList.toggle("close");
+        localStorage.setItem("sidebarState", sidebar.classList.contains("close") ? "closed" : "open");
+    });
+
+    // Highlight active link based on the current URL
+    const links = document.querySelectorAll(".menu-links a");
+    links.forEach(link => {
+        if (window.location.href.includes(link.href)) {
+            link.classList.add("active"); // Add an 'active' class for styling
+        }
+    });
+});
 </script>
 @endscript

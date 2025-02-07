@@ -3,37 +3,37 @@
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-semibold">Transactions</h1>
             <button wire:click="exportToExcel" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
-                Export to Excel
+                Export Excel
             </button>
         </div>
     
-        <div class="flex items-center gap-4 mb-4">
+        <div class="flex items-center gap-4 mb-4 max-sm:flex-wrap">
             <div class="relative flex-1">
                 <input
                     type="text"
                     wire:model.live.debounce.300ms="filter"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
+                    class="w-full p-2  border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-sm:w-full"
                     placeholder="Search transactions..."
                 />
             </div>
     
-            <div class="relative flex items-center gap-2">
+            <div class="w-full flex justify-between md:justify-end md:flex-1 items-center gap-2">
                 <input
                     type="date"
                     wire:model.live="dateRange.start"
-                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
+                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-sm:w-36"
                 />
                 <span class="text-gray-500">to</span>
                 <input
                     type="date"
                     wire:model.live="dateRange.end"
-                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300"
+                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-sm:w-36"
                 />
             </div>
         </div>
     
-        <div class="flex gap-4">
-            <div class="w-1/2 pr-2 h-full max-h-[70vh] overflow-y-auto">
+        <div class="flex gap-4 max-sm:flex-wrap">
+            <div class="w-1/2 pr-2 h-full max-h-[70vh] overflow-y-auto max-sm:w-full">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-lg font-semibold text-gray-700">Transaction List</h2>
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="w-1/2 pl-2 h-full max-h-[70vh] overflow-y-auto">
+            <div class="w-1/2 pl-2 h-full max-h-[70vh] overflow-y-auto max-sm:w-full">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-lg font-semibold text-gray-700">Transaction Details</h2>

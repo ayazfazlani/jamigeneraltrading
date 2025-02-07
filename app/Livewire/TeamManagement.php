@@ -47,7 +47,7 @@ class TeamManagement extends Component
         $viewerUsers = User::whereHas('roles', function ($query) {
             $query->where('name', 'viewer');
         })->get();
-
+        // dd($viewerUsers);
         $this->availableUsers = $this->availableUsers->merge($viewerUsers);
         $this->availableRoles = Role::all();
     }

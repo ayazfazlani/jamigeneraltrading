@@ -1,8 +1,8 @@
 <div class="flex flex-1 z-0 flex-col min-h-screen max-w-screen overflow-x-auto bg text-gray-700">
-    <div class="p-6 flex justify-between bg-white ">
-        <h1 class="text-2xl font-semibold">Reports - Analytics</h1>
+    <div class="p-6 flex justify-between bg-white w-full">
+        <h1 class="text-2xl font-semibold">Analytics</h1>
        
-            <button wire:click="exportExcel" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">Export to 
+            <button wire:click="exportExcel" class="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600">Export Excel 
     </div>
 
     <div class="flex flex-grow flex-col p-4 gap-6">
@@ -12,10 +12,10 @@
         </div> --}}
 
         <!-- Filter Section -->
-        <div class="w-full bg-white px-4 rounded-lg ">
+        <div class="w-full bg-white px-4 rounded-lg max-sm:flex-wrap ">
             <h3 class="text-lg font-semibold mb-4">Filter</h3>
             <div class="flex gap-6">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <label for="item_name" class="text-sm font-medium">Filter by Name</label>
                     <input type="text" wire:model="filterName" id="item_name" class="p-2 border rounded-lg" placeholder="Enter item name" />
                 </div>

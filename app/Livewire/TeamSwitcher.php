@@ -69,9 +69,9 @@ class TeamSwitcher extends Component
     // Update session and database
     session(['current_team_id' => $this->currentTeamId]);
     Auth::user()->update(['current_team_id' => $this->currentTeamId]);
-
+    session()->flash('status', 'Team switched successfully!');
     // Force refresh of all components
-    return redirect()->route('dashboard'); // Adjust to your route
+    return redirect()->route("home"); // Adjust to your route
   }
   public function render()
   {

@@ -307,3 +307,31 @@ body.dark .switch::before {
 body.dark .home .text {
     color: var(--text-color);
 }
+
+
+
+
+
+
+.sidebar.close {
+    width: 88px;
+}
+
+/* Mobile behavior - slide sidebar out */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(0);
+    }
+    .sidebar.close {
+        transform: translateX(-94%);
+        width: 250px; /* Keep full width when hidden */
+    }
+}
+
+
+
+
+
+
+
+

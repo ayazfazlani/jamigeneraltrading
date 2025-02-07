@@ -7,7 +7,7 @@
 
     <div class="grid grid-cols-3 gap-4 mb-4 text-gray-500">
         <div class="text-center">
-            <p>Total Inventory</p>
+            <p>Total</p>
             <h2 class="text-2xl font-bold">{{ $summary['totalInventory'] }}</h2>
         </div>
         <div class="text-center">

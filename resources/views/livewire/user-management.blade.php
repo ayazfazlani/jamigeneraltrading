@@ -8,11 +8,11 @@
     @endif
 
     <!-- Invite User Section -->
-    <div class="mb-8 bg-gray-50 p-6 rounded-lg">
+    <div class="mb-8 bg-gray-50 md:p-6 rounded-lg">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">Invite New User</h2>
         <form wire:submit.prevent="sendInvitation" class="space-y-4">
-            <div class="flex items-center space-x-4">
-                <div class="flex-1">
+            <div class="flex items-start md:space-x-4 flex-col md:flex-row">
+                <div class="w-full md:flex-1 flex-col">
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                     <input type="email" 
                            wire:model="email" 
@@ -21,7 +21,7 @@
                            required>
                 </div>
                 <button type="submit" 
-                        class="px-6 py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="px-6 py-2  mt-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     Send Invitation
                 </button>
             </div>
@@ -32,7 +32,7 @@
     <div class="bg-white rounded-lg">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">All Users</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>

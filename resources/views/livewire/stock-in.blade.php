@@ -1,4 +1,4 @@
-<div class="p-6 max-h-screen overflow-auto bg-white text-gray-900">
+<div class="p-6 max-h-screen w-full overflow-y-auto bg-white text-gray-900">
     <!-- Notifications -->
     @if(session()->has('message'))
     <div class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg" role="alert">
@@ -12,31 +12,35 @@
 
     <!-- Header Section -->
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold">Stock Management</h1>
+        <h1 class="text-2xl font-semibold">Stock in</h1>
         <div class="flex gap-2">
             <button wire:click="loadItems" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md">
-                Refresh Items
+                Refresh
             </button>
         </div>
     </div>
 
     <!-- Search and Date Filter -->
-    <div class="flex items-center gap-4 mb-6">
-        <div class="flex-1">
+    <div class="flex items-center gap-4 mb-6 flex-wrap">
+        <div class="w-full md:flex-1">
             <input type="text" wire:model.live.debounce.300ms="search" 
                 placeholder="Search items by name or SKU..."
                 class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
         </div>
-        <div class="flex items-center gap-2">
+        <div class="w-full flex justify-between md:justify-end md:flex-1 items-center gap-2">
+           <div>
             <input type="date" wire:model.live="dateRange.start" 
-                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-            <span class="text-gray-500">to</span>
+            class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-sm:w-36">
+           </div>
+            <span class="text-gray-500"> to </span>
+           <div>
             <input type="date" wire:model.live="dateRange.end" 
-                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-sm:w-36">
+           </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-sm:flex-wrap">
         <!-- Left Column: Stock Operations -->
         <div class="space-y-6">
             <!-- Stock In Section -->
@@ -147,7 +151,7 @@
 
     <!-- New Item Modal -->
     @if($isModalOpen)
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    {{-- <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-lg shadow-xl">
             <div class="p-6 border-b border-gray-200">
                 <h3 class="text-xl font-semibold">Add New Item</h3>
@@ -181,6 +185,71 @@
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Item</button>
             </div>
         </div>
+    </div> --}}
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-lg shadow-xl">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold">Add New Item</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <input type="text" wire:model="newItem.sku" placeholder="SKU" 
+                        class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    @error('newItem.sku') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+    
+                <div>
+                    <input type="text" wire:model="newItem.name" placeholder="Name" 
+                        class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    @error('newItem.name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+    
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <input type="number" wire:model="newItem.cost" placeholder="Cost" 
+                            class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        @error('newItem.cost') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <input type="number" wire:model="newItem.price" placeholder="Price" 
+                            class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        @error('newItem.price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+    
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" wire:model="newItem.type" placeholder="Type" 
+                            class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        @error('newItem.type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <input type="text" wire:model="newItem.brand" placeholder="Brand" 
+                            class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        @error('newItem.brand') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+    
+                <div>
+                    <input type="number" wire:model="newItem.quantity" placeholder="Quantity" 
+                        class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    @error('newItem.quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+    
+                <div>
+                    <input type="file" wire:model="newItem.image" 
+                        class="w-full p-2 border rounded-md file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    @error('newItem.image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end gap-2">
+                <button wire:click="$set('isModalOpen', false)" 
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-md">Cancel</button>
+                <button wire:click="addItem" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Item</button>
+            </div>
+        </div>
     </div>
+    
     @endif
 </div>

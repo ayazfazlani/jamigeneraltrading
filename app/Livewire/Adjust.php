@@ -75,9 +75,9 @@ class Adjust extends Component
                 $this->dateRange['end']
             ]);
         }
+        $this->loading = false;
 
         $this->items = $query->get();
-        $this->loading = false;
     }
 
     public function updatedSearch()
