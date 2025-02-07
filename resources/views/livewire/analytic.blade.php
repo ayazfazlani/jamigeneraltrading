@@ -26,7 +26,7 @@
                     <input type="date" wire:model="dateTo" id="date_to" class="p-2 border rounded-lg" />
                 </div> --}}
                 <div class="flex items-center">
-                    <button wire:click="fetchData" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Apply Filters</button>
+                    <button wire:click="fetchData" class="bg-blue-500 mt-6 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Filter</button>
                 </div>
             </div>
         </div>

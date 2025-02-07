@@ -29,10 +29,10 @@
         </div>
         <div class="w-full flex justify-between md:justify-end md:flex-1 items-center gap-2">
             <input type="date" wire:model.live="dateRange.start" 
-                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-sm:w-36">
+                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-w-36">
             <span class="text-gray-500">to</span>
             <input type="date" wire:model.live="dateRange.end" 
-                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-sm:w-36">
+                class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-w-36">
         </div>
     </div>
 

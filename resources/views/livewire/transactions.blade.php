@@ -21,13 +21,13 @@
                 <input
                     type="date"
                     wire:model.live="dateRange.start"
-                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-sm:w-36"
+                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-w-36"
                 />
                 <span class="text-gray-500">to</span>
                 <input
                     type="date"
                     wire:model.live="dateRange.end"
-                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-sm:w-36"
+                    class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 max-w-36"
                 />
             </div>
         </div>
