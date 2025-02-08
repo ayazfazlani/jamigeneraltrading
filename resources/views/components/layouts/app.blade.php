@@ -86,7 +86,7 @@
     <script src="//unpkg.com/alpinejs"></script>
     <script src="{{ asset('js/script.js') }}"></script>
     
-@vite(['resources/js/app.js'])
+{{-- @vite(['resources/js/app.js']) --}}
 </body>
 </html>
 
