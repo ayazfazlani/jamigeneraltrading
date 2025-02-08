@@ -133,6 +133,7 @@ class ItemList extends Component
 
         $this->fetchItems();
         $this->toggleModal();
+        session()->flash('success', 'Item added successfully!');
     }
 
     private function resetNewItem()

@@ -1,9 +1,9 @@
 <div>
     <div class="p-6 z-0 flex-1 bg-white overflow-y-auto h-screen max-sm:flex-wrap">
         <!-- Notifications -->
-        @if(session()->has('message'))
+        @if(session()->has('success'))
         <div class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg" role="alert">
-            {{ session('message') }}
+            {{ session('success') }}
         </div>
         @elseif(session()->has('error'))
         <div class="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg" role="alert">
@@ -77,25 +77,34 @@
                                 </div>
                             </li> --}}
 
-                            <li wire:key="item-{{ $item->id }}" class="flex  items-center justify-between gap-2 p-2 border border-gray-200 rounded-md sm:flex-nowrap">
-                                <div class="flex items-center flex-1 min-w-[200px]">
+                            <li wire:key="item-{{ $item->id }}" class="flex  items-center justify-around gap-1 p-2 border border-gray-200 rounded-md sm:flex-nowrap">
+                                <div class="flex gap-6 items-center min-w-[200px]">
                                     @if($item->image)
                                         <img src="{{ asset('storage/'.$item->image) }}" alt="{{ $item->name }}" 
-                                             class="w-12 h-12 sm:w-16 sm:h-16 object-cover mr-2 sm:mr-4">
+                                             class="w-12 h-12 sm:w-16 sm:h-16 object-contain mr-2 sm:mr-4">
                                     @endif
                                     <span class="text-gray-900 text-sm sm:text-base">{{ $item->name }}</span>
+                                    
+                                    <div> <span class="text-gray-900 text-sm sm:text-base">
+                                        <span
+                                         {{-- class="max-sm:hidden" --}}
+                                         >
+                                            Qty:
+                                        </span>
+                                         <span> {{ $item->quantity }}</span>
+                                    </span></div>
                                 </div>
                             
                                 <!-- Quantity (hidden on mobile) -->
                                 
-                               <div class="flex-1">
+                               {{-- <div class="flex">
                                 <span class="text-gray-900 text-sm sm:text-base">
                                     <span class="max-sm:hidden">
                                         Quantity:
                                     </span>
                                      <span> {{ $item->quantity }}</span>
                                 </span>
-                               </div>
+                               </div> --}}
                             
                                 <div class="flex gap-2">
                                     @role('viewer')
@@ -211,6 +220,15 @@
                     </div>
         
                     <div>
+                        
+                            @if($isEditing && isset($newItem['image']) && !is_object($newItem['image']))
+                                <div class="mb-2">
+                                    <p class="text-gray-600 text-sm">Current Image:</p>
+                                    <img src="{{ asset('storage/' . $newItem['image']) }}" alt="Item Image" class="w-32 h-32 object-cover rounded-md border">
+                                </div>
+                            @endif
+                        
+                          
                         <input type="file" wire:model="newItem.image" 
                             class="w-full p-2 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         @error('newItem.image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

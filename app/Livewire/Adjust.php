@@ -5,17 +5,15 @@ namespace App\Livewire;
 use App\Models\Item;
 use App\Models\Summary;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Analytics;
 use App\Models\Transaction;
-use Livewire\WithFileUploads;
 use App\Services\AnalyticsService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class Adjust extends Component
 {
-    use WithFileUploads;
-
     use WithFileUploads;
 
     public $items = [];
@@ -26,10 +24,7 @@ class Adjust extends Component
     public $newItem = [];
     public $loading = false;
     public $search = '';
-    public $dateRange = [
-        'start' => '',
-        'end' => ''
-    ];
+    public $dateRange = ['start' => '', 'end' => ''];
 
     public function mount()
     {
@@ -56,40 +51,31 @@ class Adjust extends Component
         $teamId = Auth::user()->getCurrentTeamId();
         $this->loading = true;
 
-        $query = Item::query();
-
-        if (!Auth::user()->hasRole('super admin')) {
-            $query->where('team_id', $teamId);
-        }
+        $query = Item::query()->when(!Auth::user()->hasRole('super admin'), fn($q) => $q->where('team_id', $teamId));
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('sku', 'like', '%' . $this->search . '%');
+                $q->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('sku', 'like', "%{$this->search}%");
             });
         }
 
         if ($this->dateRange['start'] && $this->dateRange['end']) {
-            $query->whereBetween('created_at', [
-                $this->dateRange['start'],
-                $this->dateRange['end']
-            ]);
+            $query->whereBetween('created_at', [$this->dateRange['start'], $this->dateRange['end']]);
         }
-        $this->loading = false;
 
         $this->items = $query->get();
+        $this->loading = false;
     }
 
     public function updatedSearch()
     {
         $this->fetchItems();
     }
-
     public function updatedDateRange()
     {
         $this->fetchItems();
     }
-
 
     public function openModal($itemId = null)
     {
@@ -139,35 +125,30 @@ class Adjust extends Component
 
     public function saveItem()
     {
-        $validated = $this->validate($this->getValidationRules());
+        $this->validate($this->getValidationRules());
         $teamId = Auth::user()->getCurrentTeamId();
+
         if ($this->isEditing && $this->currentItem) {
             $item = Item::findOrFail($this->currentItem['id']);
             $originalQuantity = $item->quantity;
             $quantityDifference = $this->newItem['quantity'] - $originalQuantity;
 
-            $this->newItem['image'] = $this->handleImageUpload(
-                $this->newItem['image'] ?? null,
-                $item->image
-            );
-
+            $this->newItem['image'] = $this->handleImageUpload($this->newItem['image'] ?? null, $item->image);
             $item->update($this->newItem);
 
             if ($quantityDifference != 0) {
                 $this->logTransaction($item, 'adjusted', $quantityDifference);
-                $analyticsService = new AnalyticsService();
-                $analyticsService->updateAllAnalytics($item, $item->quantity, 'update');
+                (new AnalyticsService())->updateAllAnalytics($item, $item->quantity, 'update');
             }
+            session()->flash('success', 'Item updated successfully!');
         } else {
             $this->newItem['image'] = $this->handleImageUpload($this->newItem['image']);
             $this->newItem['team_id'] = $teamId;
 
             $item = Item::create($this->newItem);
-
             $this->logTransaction($item, 'created', $item->quantity);
-
-            $analyticsService = new AnalyticsService();
-            $analyticsService->updateAllAnalytics($item, $item->quantity, 'created');
+            (new AnalyticsService())->updateAllAnalytics($item, $item->quantity, 'created');
+            session()->flash('success', 'Item added successfully!');
         }
 
         $this->fetchItems();
@@ -176,11 +157,10 @@ class Adjust extends Component
 
     private function logTransaction($item, $type, $quantityDifference)
     {
-        $teamId = Auth::user()->getCurrentTeamId();
         Transaction::create([
             'item_id' => $item->id,
             'user_id' => Auth::user()->id,
-            'team_id' => $teamId,
+            'team_id' => Auth::user()->getCurrentTeamId(),
             'item_name' => $item->name,
             'type' => $type,
             'quantity' => $quantityDifference,
@@ -192,25 +172,14 @@ class Adjust extends Component
 
     public function deleteItem($itemId)
     {
-        $teamId = Auth::user()->getCurrentTeamId();
         try {
             $item = Item::findOrFail($itemId);
-
-            if (!Auth::user()->teams->contains('id', $teamId)) {
-                abort(403, 'Unauthorized');
-            }
-
-            if ($item->image && Storage::disk('public')->exists($item->image)) {
-                Storage::disk('public')->delete($item->image);
-            }
-
+            if ($item->image) Storage::disk('public')->delete($item->image);
             $this->logTransaction($item, 'deleted', $item->quantity);
-
             Analytics::where('item_id', $itemId)->delete();
             Summary::where('item_id', $itemId)->delete();
             $item->delete();
-
-            $this->fetchItems();
+            session()->flash('success', 'Item deleted successfully!');
         } catch (\Exception $e) {
             session()->flash('error', 'Unable to delete the item: ' . $e->getMessage());
         }
@@ -219,8 +188,6 @@ class Adjust extends Component
 
     public function render()
     {
-        return view('livewire.adjust', [
-            'items' => $this->items,
-        ]);
+        return view('livewire.adjust', ['items' => $this->items]);
     }
 }

@@ -1,5 +1,14 @@
 <div>
     <div class="p-6 flex-1 bg-white min-h-screen overflow-y-auto">
+        @if(session()->has('success'))
+        <div class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg" role="alert">
+            {{ session('success') }}
+        </div>
+        @elseif(session()->has('error'))
+        <div class="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg" role="alert">
+            {{ session('error') }}
+        </div>
+        @endif
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-4 max-sm:flex-wrap max-sm:gap-2">
             <h1 class="text-2xl font-semibold">Items</h1>
@@ -71,7 +80,7 @@
                                     <img 
                                         src="{{ asset('storage/'.$item->image) }}" 
                                         alt="{{ $item->name }}"
-                                        class="w-16 h-16 object-cover rounded-md"
+                                        class="w-16 h-16 object-contain rounded-md"
                                     >
                                     @endif
                                     <div class="flex-1">
@@ -111,7 +120,7 @@
                                 <img 
                                     src="{{ asset('storage/'.$selectedItem->image) }}" 
                                     alt="{{ $selectedItem->name }}"
-                                    class="w-full h-48 object-cover rounded-md mb-4"
+                                    class="w-full h-48 object-contain rounded-md mb-4"
                                 >
                                 @endif
                                 <div class="grid grid-cols-2 gap-4">

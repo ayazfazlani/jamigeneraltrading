@@ -89,15 +89,15 @@
                         </ul>
                         <div class="mt-4 flex justify-between items-center">
                             <div class="text-sm text-gray-600">
-                                Total Items: {{ count($selectedItems) }} | 
-                                Total Quantity: {{ array_sum(array_column($selectedItems, 'quantity')) }}
+                                Items: {{ count($selectedItems) }} | 
+                                Qty: {{ array_sum(array_column($selectedItems, 'quantity')) }}
                             </div>
                             @role('viewer')
                             @else
                             <button wire:click="handleStockOut" 
                                 wire:loading.attr="disabled"
                                 class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                                <span wire:loading.remove>Confirm Stock Out</span>
+                                <span wire:loading.remove>Stock Out</span>
                                 <span wire:loading>
                                     Processing...
                                     <i class="fas fa-spinner fa-spin ml-2"></i>

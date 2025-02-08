@@ -23,7 +23,7 @@
                     <input type="text" placeholder="Search...">
                 </li> --}}
 
-                <ul class="menu-links">
+                {{-- <ul class="menu-links">
                     <li class="nav-link">
                         <a wire:navigate href="{{ route('items')}}">
                             <i class='bx bx-list-ol icon'></i>
@@ -80,7 +80,64 @@
                             <span class="text nav-text">Dashboard</span>
                         </a>
                     </li>
-                </ul>
+                </ul> --}}
+
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('items')}}" class="{{ request()->routeIs('items') ? 'active' : '' }}">
+                        <i class='bx bx-list-ol icon'></i>
+                        <span class="text nav-text">Item List</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('stock-in')}}" class="{{ request()->routeIs('stock-in') ? 'active' : '' }}">
+                        <i class='bx bx-cart icon'></i>
+                        <span class="text nav-text">Stock In</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('stock-out')}}" class="{{ request()->routeIs('stock-out') ? 'active' : '' }}">
+                        <i class='bx bx-cart-alt icon'></i>
+                        <span class="text nav-text">Stock Out</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('adjust')}}" class="{{ request()->routeIs('adjust') ? 'active' : '' }}">
+                        <i class='bx bx-adjust icon'></i>
+                        <span class="text nav-text">Adjust</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('transactions')}}" class="{{ request()->routeIs('transactions') ? 'active' : '' }}">
+                        <i class='bx bx-credit-card icon'></i>
+                        <span class="text nav-text">Transactions</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('analytics')}}" class="{{ request()->routeIs('analytics') ? 'active' : '' }}">
+                        <i class='bx bx-bar-chart-square icon'></i>
+                        <span class="text nav-text">Analytics</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('summary')}}" class="{{ request()->routeIs('summary') ? 'active' : '' }}">
+                        <i class='bx bx-file icon'></i>
+                        <span class="text nav-text">Summary</span>
+                    </a>
+                </li>
+                
+                <li class="nav-link">
+                    <a wire:navigate href="{{ route('dashboard')}}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <i class='bx bx-grid-alt icon'></i>
+                        <span class="text nav-text">Dashboard</span>
+                    </a>
+                </li>
+                
             </div>
 
             {{-- <div class="bottom-content">

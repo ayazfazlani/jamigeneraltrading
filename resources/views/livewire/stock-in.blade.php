@@ -92,14 +92,14 @@
                         </ul>
                         <div class="mt-4 flex justify-between items-center">
                             <div class="text-sm text-gray-600">
-                                Total Items: {{ count($selectedItems) }} | 
-                                Total Quantity: {{ array_sum(array_column($selectedItems, 'quantity')) }}
+                                Items: {{ count($selectedItems) }} | 
+                                Qty: {{ array_sum(array_column($selectedItems, 'quantity')) }}
                             </div>
                             @role('viewer')
                             @else
                             <button wire:click="handleStockIn" 
                                 class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
-                                Confirm Stock In
+                                Stock In
                             </button>
                             @endrole
                         </div>

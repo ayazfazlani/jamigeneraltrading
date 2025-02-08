@@ -335,3 +335,9 @@ body.dark .home .text {
 
 
 
+.nav-link a.active {
+    background-color: #e9eaed; /* Light gray background */
+    color: #2196f3; /* Dark blue text */
+    font-weight: bold;
+    border-left: 4px solid #2196f3; /* Blue left border */
+}

@@ -32,6 +32,7 @@ class ItemsImport implements ToModel
 
         // Log transaction
         $this->logTransaction($item, 'created', $item->quantity);
+        session()->flash('success', 'Items imported successfully!');
 
         return $item;
     }
