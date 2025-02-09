@@ -85,8 +85,10 @@
     <!-- Alpine.js for Dropdown functionality -->
     <script src="//unpkg.com/alpinejs"></script>
     <script src="{{ asset('js/script.js') }}"></script>
+    <script src="{{ asset('js/app.js') }}"></script>
+
     
-@vite(['resources/js/app.js'])
+{{-- @vite(['resources/js/app.js']) --}}
 </body>
 </html>
 
