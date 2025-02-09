@@ -58,16 +58,16 @@
                     <table class="min-w-full bg-white border rounded-lg table-auto">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-3 min-w-[150px]">Item</th>
-                                <th class="p-3 min-w-[150px]">Current Quantity</th>
-                                <th class="p-3 min-w-[150px]">Inventory Assets</th>
-                                <th class="p-3 min-w-[150px]">Average Quantity</th>
-                                <th class="p-3 min-w-[150px]">Turnover Ratio</th>
-                                <th class="p-3 min-w-[150px]">Stock Out Days</th>
-                                <th class="p-3 min-w-[150px]">Total Stock in</th>
-                                <th class="p-3 min-w-[150px]">Total Stock Out</th>
-                                <th class="p-3 min-w-[150px]">Avg Daily Stock In</th>
-                                <th class="p-3 min-w-[150px]">Avg Daily Stock Out</th>
+                                <th class="p-3 md:min-w-[200px]">Item</th>
+                                <th class="p-3 md:min-w-[200px]">Current Quantity</th>
+                                <th class="p-3 md:min-w-[200px]">Inventory Assets</th>
+                                <th class="p-3 md:md:min-w-[200px]">Average Quantity</th>
+                                <th class="p-3 md:min-w-[200px]">Turnover Ratio</th>
+                                <th class="p-3 md:min-w-[200px]">Stock Out Days</th>
+                                <th class="p-3 md:min-w-[200px]">Total Stock in</th>
+                                <th class="p-3 md:min-w-[200px]">Total Stock Out</th>
+                                <th class="p-3 md:min-w-[200px]">Avg Daily Stock In</th>
+                                <th class="p-3 md:min-w-[200px]">Avg Daily Stock Out</th>
                             </tr>
                         </thead>
                         <tbody>
