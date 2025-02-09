@@ -12,31 +12,30 @@
         </div> --}}
 
         <!-- Filter Section -->
-        <div class="w-full bg-white px-4 rounded-lg max-sm:flex-wrap ">
+        <div class="w-full bg-white px-4 rounded-lg max-sm:flex-wrap">
             <h3 class="text-lg font-semibold mb-4">Filter</h3>
-            <div class="flex gap-6">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <label for="item_name" class="text-sm font-medium">Filter by Name</label>
-                    <input type="text" wire:model="filterName" id="item_name" class="p-2 border rounded-lg" placeholder="Enter item name" />
+            <div class="flex w-full gap-2">
+                <div class="flex flex-1 items-center gap-2">
+                    <input type="text" wire:model.live="filterName" id="item_name" 
+                           class="flex-1 p-2 border rounded-lg" 
+                           placeholder="Enter item name" />
                 </div>
-                {{-- <div class="flex items-center gap-2">
-                    <label for="date_from" class="text-sm font-medium">From</label>
-                    <input type="date" wire:model="dateFrom" id="date_from" class="p-2 border rounded-lg" />
-                    <label for="date_to" class="text-sm font-medium">To</label>
-                    <input type="date" wire:model="dateTo" id="date_to" class="p-2 border rounded-lg" />
-                </div> --}}
-                <div class="flex items-center">
-                    <button wire:click="fetchData" class="bg-blue-500 mt-6 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Filter</button>
+                <div class="hidden md:flex-1">
+                    {{-- <button wire:click="fetchData" 
+                    class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                Filter
+            </button> --}}
                 </div>
             </div>
         </div>
+        
 
         <!-- Main Table Section -->
         <div class="bg-white p-4 rounded-lg  overflow-x-auto max-h-[400px] overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4">Item Analytics</h3>
             <div class="flex overflow-hidden">
                 <!-- Left Section: Item Info -->
-                <div class="w-1/4 bg-gray-50 flex-none">
+                <div class="w-1/4 hidden md:block bg-gray-50 flex-none">
                     <table class="min-w-full bg-white border rounded-lg table-auto">
                         <thead>
                             <tr class="bg-gray-200">
@@ -59,16 +58,16 @@
                     <table class="min-w-full bg-white border rounded-lg table-auto">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-3 min-w-[200px]">Item</th>
-                                <th class="p-3 min-w-[200px]">Current Quantity</th>
-                                <th class="p-3 min-w-[200px]">Inventory Assets</th>
-                                <th class="p-3 min-w-[200px]">Average Quantity</th>
-                                <th class="p-3 min-w-[200px]">Turnover Ratio</th>
-                                <th class="p-3 min-w-[200px]">Stock Out Days</th>
-                                <th class="p-3 min-w-[200px]">Total Stock in</th>
-                                <th class="p-3 min-w-[200px]">Total Stock Out</th>
-                                <th class="p-3 min-w-[200px]">Avg Daily Stock In</th>
-                                <th class="p-3 min-w-[200px]">Avg Daily Stock Out</th>
+                                <th class="p-3 min-w-[150px]">Item</th>
+                                <th class="p-3 min-w-[150px]">Current Quantity</th>
+                                <th class="p-3 min-w-[150px]">Inventory Assets</th>
+                                <th class="p-3 min-w-[150px]">Average Quantity</th>
+                                <th class="p-3 min-w-[150px]">Turnover Ratio</th>
+                                <th class="p-3 min-w-[150px]">Stock Out Days</th>
+                                <th class="p-3 min-w-[150px]">Total Stock in</th>
+                                <th class="p-3 min-w-[150px]">Total Stock Out</th>
+                                <th class="p-3 min-w-[150px]">Avg Daily Stock In</th>
+                                <th class="p-3 min-w-[150px]">Avg Daily Stock Out</th>
                             </tr>
                         </thead>
                         <tbody>

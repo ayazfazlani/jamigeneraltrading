@@ -19,13 +19,28 @@
         </div>
 
         <!-- Search and Date Filter -->
-        <div class=" items-center gap-4 my-6 flex flex-wrap md:flex">
+        {{-- <div class=" items-center gap-4 my-6 flex flex-wrap md:flex">
             <div class="flex-1">
                 <input type="text" wire:model.live.debounce.300ms="search" 
                     placeholder="Search items by name or SKU..."
                     class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div class="w-full flex justify-between md:justify-end md:flex-1 items-center gap-2 flex-wrap">
+                <input type="date" wire:model.live="dateRange.start" 
+                    class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-w-36">
+                <span class="text-gray-500">to</span>
+                <input type="date" wire:model.live="dateRange.end" 
+                    class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-w-36">
+            </div>
+        </div> --}}
+
+        <div class="flex items-center gap-4 mb-6 max-sm:flex-wrap">
+            <div class="flex-1">
+                <input type="text" wire:model.live.debounce.300ms="search" 
+                    placeholder="Search items by name or SKU..."
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="w-full flex justify-between md:justify-end md:flex-1 items-center gap-2">
                 <input type="date" wire:model.live="dateRange.start" 
                     class="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 max-w-36">
                 <span class="text-gray-500">to</span>

@@ -11,9 +11,14 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('Icon.png')}}">
     <title>{{ $title ?? 'JGT' }}</title>
     <link rel="manifest" href="/manifest.json">
-    <script src="https://cdn.tailwindcss.com"></script>
+    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
     <!-- Link to external styles -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
+<script src="{{ asset('js/script.js') }}?v={{ time() }}"></script>
+
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
@@ -21,7 +26,7 @@
 
     
     {{-- <link href="/dist/tailwind.css" rel="stylesheet" /> --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
 
     <link rel="apple-touch-icon" sizes="16x16" href="/pwa/icons/ios/16.png">
     <link rel="apple-touch-icon" sizes="20x20" href="/pwa/icons/ios/20.png">
@@ -62,7 +67,7 @@
     <!-- Sidebar Component -->
     @livewire('header')
 
-<div class="flex">
+<div class="flex" wire:ignore>
     @livewire('sidebar')
 
 
@@ -79,14 +84,16 @@
 
 
     <!-- Scripts Section -->
-    @livewireScripts
+   
     @yield('scripts')
     @stack('scripts')
     <!-- Alpine.js for Dropdown functionality -->
     <script src="//unpkg.com/alpinejs"></script>
     <script src="{{ asset('js/script.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    @livewireScripts
     
 {{-- @vite(['resources/js/app.js']) --}}
 </body>

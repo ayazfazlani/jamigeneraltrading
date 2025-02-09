@@ -10,26 +10,22 @@
         </button>
     </div>
 
-    <div class="flex items-center mb-4">
-        <!-- Date Range input -->
-        {{-- <label class="mr-2">Select Date Range:</label>
-        <input
-            type="text"
-            placeholder="Select Date Range"
-            class="border border-gray-300 rounded p-2 mr-2"
-            wire:model="dateRange"
-        /> --}}
+    <div class="flex w-full items-center gap-2 mb-4">
         <!-- Search by Name input -->
         <input
             type="text"
             placeholder="Search by Name"
-            class="border border-gray-300 rounded p-2 mr-2"
-            wire:model="search"
+            class="flex-1 border border-gray-300 rounded p-2"
+            wire:model.live="search"
         />
-        <button class="bg-blue-500 text-white px-4 py-2 max-sm:px-1 max-sm:py-1 rounded hover:bg-blue-600" wire:click="filterReports">
-            Apply Filters
-        </button>
+       <div class="flex-1">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 max-sm:px-2 max-sm:py-1"
+        wire:click="filterReports">
+        Apply
+    </button>
+       </div>
     </div>
+    
 
     <div class="overflow-x-auto overflow-x-auto max-h-[400px] overflow-y-auto">
         <table class="min-w-full border border-gray-300">
