@@ -10,7 +10,7 @@
         </button>
     </div>
 
-    <div class="flex w-full items-center gap-2 mb-4">
+    <div class="flex flex-wrap w-full items-center gap-2 mb-4">
         <!-- Search by Name input -->
         <input
             type="text"

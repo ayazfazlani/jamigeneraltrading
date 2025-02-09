@@ -20,7 +20,7 @@
                            class="flex-1 p-2 border rounded-lg" 
                            placeholder="Enter item name" />
                 </div>
-                <div class="hidden md:flex-1">
+                <div class="md:flex-1">
                     {{-- <button wire:click="fetchData" 
                     class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                 Filter
