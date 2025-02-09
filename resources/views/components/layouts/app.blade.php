@@ -11,14 +11,18 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('Icon.png')}}">
     <title>{{ $title ?? 'JGT' }}</title>
     <link rel="manifest" href="/manifest.json">
+    
+    @livewireStyles
+   
     {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
     <!-- Link to external styles -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
-<script src="{{ asset('js/script.js') }}?v={{ time() }}"></script>
-
+    {{-- <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
+     <script src="{{ asset('js/script.js') }}?v={{ time() }}"></script> --}}
+  
+     @vite("resources/css/app.css");
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
@@ -59,8 +63,8 @@
     <link href="/pwa/icons/ios/512.png" sizes="512x512" rel="apple-touch-startup-image">
     <link href="/pwa/icons/ios/256.png" sizes="256x256" rel="apple-touch-startup-image">
     <link href="/pwa/icons/ios/192.png" sizes="192x192" rel="apple-touch-startup-image">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
+
+ 
 </head>
 <body>
 
@@ -88,11 +92,11 @@
     @yield('scripts')
     @stack('scripts')
     <!-- Alpine.js for Dropdown functionality -->
-    <script src="//unpkg.com/alpinejs"></script>
+    {{-- <script src="//unpkg.com/alpinejs"></script> --}}
     <script src="{{ asset('js/script.js') }}"></script>
-    <script src="{{ asset('js/app.js') }}"></script>
-  
+    {{-- <script src="{{ asset('js/app.js') }}"></script> --}}
 
+    @vite('resources/js/app.js');
     @livewireScripts
     
 {{-- @vite(['resources/js/app.js']) --}}
