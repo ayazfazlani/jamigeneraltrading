@@ -15,7 +15,7 @@
         <input
             type="text"
             placeholder="Search by Name"
-            class="flex-1 border border-gray-300 rounded p-2"
+            class="w-full md:flex-1 border border-gray-300 rounded p-2"
             wire:model.live="search"
         />
        <div class="flex-1">

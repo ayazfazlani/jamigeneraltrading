@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 
         {{-- fav icon  --}}
-    <link rel="icon" type="image/x-icon" href="{{ asset('Icon.png')}}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('icon.png')}}">
     <title>{{ $title ?? 'JGT' }}</title>
     <link rel="manifest" href="/manifest.json">
     

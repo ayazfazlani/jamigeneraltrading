@@ -15,7 +15,7 @@
         <div class="w-full bg-white px-4 rounded-lg max-sm:flex-wrap">
             <h3 class="text-lg font-semibold mb-4">Filter</h3>
             <div class="flex w-full gap-2">
-                <div class="flex flex-1 items-center gap-2">
+                <div class="flex w-full md:flex-1 items-center gap-2">
                     <input type="text" wire:model.live="filterName" id="item_name" 
                            class="flex-1 p-2 border rounded-lg" 
                            placeholder="Enter item name" />

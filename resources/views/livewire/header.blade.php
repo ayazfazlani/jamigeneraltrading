@@ -3,7 +3,7 @@
         <!-- Logo -->
         <div class="flex h-10 w-40 items-center space-x-3">
             <a wire:navigate href="/">
-                <img src="{{ asset('jgt.png') }}" alt="Logo" class="h-11">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-13">
             </a>
         </div>
 
